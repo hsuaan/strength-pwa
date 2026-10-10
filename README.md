@@ -48,3 +48,11 @@
 ```
 
 教練更新只合併到後續課表，不會改寫歷史紀錄。
+
+
+## Cloud sync — PWA 1.1
+
+This build uses Supabase Email/Password Auth and stores each signed-in user's full app state in
+`public.strength_state`. Row Level Security restricts each account to its own row.
+
+LocalStorage remains the offline source. Changes sync automatically when online.
