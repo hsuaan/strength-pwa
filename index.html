@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#111111"/>
+<link rel="manifest" href="./manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="./icons/icon-180.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Strength"/>
+<title>Strength｜訓練</title>
+<style>
+:root{
+  --bg:#f3f3f1; --card:#ffffff; --ink:#111111; --muted:#767676;
+  --line:#e7e7e2; --soft:#f7f7f4; --accent:#111111; --ok:#18864b;
+  --warn:#b66a00; --bad:#b3261e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+body{min-height:100svh}
+button,input{font:inherit}
+button{cursor:pointer;color:#111;-webkit-text-fill-color:#111;-webkit-appearance:none;appearance:none}
+button:disabled{opacity:.45}
+.app{width:min(100%,520px);margin:auto;min-height:100svh;background:var(--bg);padding:0 14px 92px}
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(243,243,241,.94);backdrop-filter:blur(12px);z-index:20}
+.brand{font-weight:850;letter-spacing:-.03em;font-size:21px}
+.iconbtn{border:1px solid var(--line);background:#fff;min-width:40px;height:40px;padding:0 12px;border-radius:14px;box-shadow:0 1px 0 #ddd;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:850;color:#111;-webkit-text-fill-color:#111}
+.hero{display:flex;justify-content:space-between;align-items:end;margin:8px 2px 14px}
+.hero h1{font-size:28px;margin:0 0 4px;letter-spacing:-.04em}
+.sub{color:var(--muted);font-size:14px}
+.pill{background:#111;color:#fff;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:800}
+.card{background:var(--card);border-radius:24px;border:1px solid var(--line);box-shadow:0 8px 26px rgba(0,0,0,.045)}
+.workout-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 8px}
+.kicker{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.workout-title{font-size:20px;font-weight:850;margin-top:2px}
+.progress-text{font-weight:800;font-size:13px}
+.progress-track{height:6px;background:#ecece8;margin:0 18px 14px;border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;background:#111;width:0%;transition:.25s}
+.exercise{padding:0 14px 14px}
+.illustration{height:190px;border-radius:20px;background:linear-gradient(180deg,#fafaf7,#efefe9);display:grid;place-items:center;overflow:hidden;position:relative}
+.illustration svg{width:94%;height:94%}
+.badge{position:absolute;top:12px;left:12px;background:#fff;border:1px solid #e5e5df;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}
+.exercise-name{display:flex;justify-content:space-between;gap:12px;align-items:start;margin:14px 4px 8px}
+.exercise-name h2{font-size:22px;line-height:1.08;margin:0;letter-spacing:-.035em}
+.exercise-name .en{color:var(--muted);font-size:12px;margin-top:4px}
+.swap{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px;font-weight:750;font-size:12px}
+.dose{display:grid;grid-template-columns:1.1fr .9fr .9fr;gap:8px;margin:0 4px}
+.metric{background:var(--soft);border-radius:16px;padding:11px 10px;min-height:66px}
+.metric .label{font-size:10px;color:var(--muted);font-weight:800}
+.metric .value{font-size:18px;font-weight:900;margin-top:4px;white-space:nowrap}
+.cues{margin:10px 4px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.cue{border:1px solid var(--line);border-radius:14px;padding:9px 8px;font-size:11px;line-height:1.25;font-weight:720;background:white}
+.sets{margin:12px 4px 0}
+.set-row{display:grid;grid-template-columns:45px 1fr 1fr 46px;gap:8px;align-items:center;margin-top:8px}
+.set-label{font-size:12px;font-weight:850}
+.repbox{background:#f6f6f3;border:1px solid #e3e3dd;border-radius:13px;display:flex;align-items:center;justify-content:center;min-height:44px;font-weight:850}
+.repbox small{font-size:10px;color:var(--muted);margin-left:3px}
+.donebtn{height:44px;border-radius:13px;border:0;background:#111;color:#fff;-webkit-text-fill-color:#fff;font-size:18px;font-weight:900}
+.donebtn.done{background:var(--ok)}
+.restbox{display:none;margin:12px 4px 0;border-radius:18px;background:#111;color:white;padding:12px 14px;align-items:center;justify-content:space-between}
+.restbox.show{display:flex}
+.resttime{font-size:26px;font-weight:900}
+.rest-actions{display:flex;gap:8px}
+.rest-actions button{border:1px solid #444;background:#1f1f1f;color:white;border-radius:10px;padding:8px 10px}
+.feedback{display:none;margin:14px 4px 0}
+.feedback.show{display:block}
+.feedback-title{font-size:13px;font-weight:850;margin-bottom:8px}
+.feedback-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.feedback-grid button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px 4px;font-size:12px;font-weight:800}
+.feedback-grid button.selected{background:#111;color:#fff;-webkit-text-fill-color:#fff;border-color:#111}
+.navrow{display:flex;gap:10px;margin:14px 4px 2px}
+.navrow button{height:48px;border-radius:15px;font-weight:850}
+.prev{width:48px;border:1px solid var(--line);background:#fff}
+.next{flex:1;border:0;background:#111;color:#fff;-webkit-text-fill-color:#fff}
+.details{display:none;margin:12px 4px 0;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:#fff;font-size:12px;line-height:1.65}
+.details.show{display:block}
+.empty{padding:34px 20px;text-align:center}
+.empty .big{font-size:42px}
+.empty h2{margin:8px 0 6px}
+.empty p{color:var(--muted);font-size:13px;line-height:1.5}
+.plan-grid{display:grid;gap:9px;margin-top:10px}
+.day{display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid var(--line);border-radius:17px;padding:13px 14px}
+.day strong{font-size:14px}
+.day span{font-size:12px;color:var(--muted)}
+.day.today{border:2px solid #111}
+.section{display:none}
+.section.active{display:block}
+.bottom{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,520px);padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(243,243,241,0),rgba(243,243,241,.96) 28%)}
+.tabs{background:white;border:1px solid var(--line);border-radius:20px;display:grid;grid-template-columns:1fr 1fr 1fr;padding:5px;box-shadow:0 8px 26px rgba(0,0,0,.08)}
+.tab{border:0;background:transparent;border-radius:15px;padding:10px 4px;color:#777;font-size:11px;font-weight:800}
+.tab.active{background:#111;color:#fff;-webkit-text-fill-color:#fff}
+.sheet{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;align-items:flex-end}
+.sheet.show{display:flex}
+.sheet-body{width:min(100%,520px);margin:auto;background:#fff;border-radius:28px 28px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom));max-height:82svh;overflow:auto}
+.sheet-title{font-size:21px;font-weight:900;margin-bottom:6px}
+.field{margin-top:14px}
+.field label{font-size:12px;font-weight:850;display:block;margin-bottom:7px}
+.field input{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:#fafaf8}
+.save{width:100%;margin-top:16px;height:48px;background:#111;color:#fff;-webkit-text-fill-color:#fff;border:0;border-radius:14px;font-weight:900}
+.history-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:8px}
+.history-item strong{font-size:13px}
+.history-item div{font-size:11px;color:var(--muted);margin-top:4px}
+.small-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:8px}
+
+.mode-switch{display:grid;grid-template-columns:1fr 1fr;background:#e9e9e4;border-radius:16px;padding:4px;margin:0 2px 12px;gap:4px}
+.mode-btn{border:0;border-radius:13px;padding:10px 8px;background:transparent;color:#676767;font-size:12px;font-weight:850}
+.mode-btn.active{background:#fff;color:#111;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.groupnote{margin:10px 4px 0;padding:9px 11px;border-radius:14px;background:#f0f0ec;font-size:11px;font-weight:760;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.groupnote b{font-size:12px}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.share-actions button,.secondary-btn{min-height:46px;border-radius:13px;border:1.5px solid #cfcfc8;background:#fff;font-weight:850;color:#111;-webkit-text-fill-color:#111;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:7px}
+.summary-box{width:100%;min-height:220px;border:1px solid var(--line);border-radius:15px;padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fafaf8;resize:vertical}
+.finish-actions{display:grid;gap:8px;margin-top:12px}
+.finish-actions button{min-height:46px;border-radius:14px;font-weight:850}
+.copy-primary{background:#111;color:#fff;-webkit-text-fill-color:#fff;border:0}
+.data-note{margin-top:10px;font-size:11px;line-height:1.5;color:var(--muted)}
+.status-card{padding:18px;margin-bottom:10px}
+.status-main{display:flex;gap:13px;align-items:flex-start}
+.status-icon{width:48px;height:48px;flex:0 0 48px;border-radius:16px;background:#111;color:#fff;display:grid;place-items:center;font-size:24px;font-weight:900}
+.status-copy h2{font-size:21px;letter-spacing:-.03em;margin:1px 0 4px}
+.status-copy p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.next-card{margin-top:13px;background:var(--soft);border-radius:17px;padding:12px 13px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.next-card .when{font-size:11px;color:var(--muted);font-weight:800;margin-bottom:3px}
+.next-card strong{font-size:14px}
+.next-card .arrow{font-size:20px}
+.status-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.status-actions button{border-radius:14px;padding:11px 8px;font-weight:850;border:1px solid var(--line)}
+.status-actions .primary{background:#111;color:#fff;-webkit-text-fill-color:#fff;border-color:#111}
+.status-actions .secondary{background:#fff;color:#111}
+.daily-context{margin-top:10px;display:grid;gap:8px}
+.context-row{background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 13px;font-size:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.context-row span{color:var(--muted)}
+
+
+.cardio-picker{display:grid;gap:9px;margin-top:10px}
+.cardio-choice{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;text-align:left;display:flex;gap:12px;align-items:center}
+.cardio-choice.selected{border:2px solid #111;background:#fafaf7}
+.cardio-emoji{width:46px;height:46px;border-radius:15px;background:var(--soft);display:grid;place-items:center;font-size:23px;flex:0 0 46px}
+.cardio-choice strong{display:block;font-size:14px}
+.cardio-choice small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
+.cardio-start{width:100%;border:0;background:#111;color:#fff;-webkit-text-fill-color:#fff;border-radius:15px;height:50px;font-weight:900;margin-top:12px}
+.cardio-session{padding:0 14px 14px}
+.cardio-clock{font-size:46px;font-weight:950;letter-spacing:-.04em;text-align:center;margin:8px 0 2px}
+.cardio-phase{text-align:center;color:var(--muted);font-size:12px;font-weight:800}
+.cardio-round{text-align:center;font-size:12px;font-weight:850;margin-top:4px}
+.cardio-timer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.cardio-timer-actions button{height:46px;border-radius:14px;font-weight:900}
+.cardio-pause{background:#111;color:#fff;-webkit-text-fill-color:#fff;border:0}
+.cardio-skip{background:#fff;border:1px solid var(--line)}
+.cardio-mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}
+.cardio-mini div{background:var(--soft);border-radius:14px;padding:9px 8px;text-align:center}
+.cardio-mini span{display:block;font-size:10px;color:var(--muted)}
+.cardio-mini b{display:block;font-size:13px;margin-top:3px}
+.cardio-complete{padding:20px;text-align:center}
+.cardio-complete .bigcheck{font-size:43px}
+.cardio-feedback{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.cardio-feedback button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 5px;font-size:12px;font-weight:850}
+.cardio-feedback button.selected{background:#111;color:#fff;-webkit-text-fill-color:#fff;border-color:#111}
+.cardio-next{margin-top:11px;background:var(--soft);border-radius:16px;padding:11px 12px;font-size:12px;line-height:1.5}
+.summary-box{width:100%;min-height:260px;resize:vertical;border:1px solid var(--line);border-radius:14px;padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fafaf8}
+.tutorial-sheet .sheet-body{padding-top:10px}
+.tutorial-handle{width:42px;height:5px;border-radius:999px;background:#d9d9d3;margin:0 auto 14px}
+.tutorial-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.tutorial-head h2{margin:2px 0 4px;font-size:23px;letter-spacing:-.035em}
+.tutorial-version{display:inline-flex;background:#111;color:#fff;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:850;margin-top:5px}
+.tutorial-section{margin-top:16px}
+.tutorial-section h3{font-size:12px;margin:0 0 8px;letter-spacing:.03em}
+.tutorial-steps{display:grid;gap:8px}
+.tutorial-step{display:grid;grid-template-columns:28px 1fr;gap:9px;align-items:start;background:#f7f7f4;border-radius:14px;padding:10px 11px;font-size:12px;line-height:1.5}
+.step-no{width:24px;height:24px;border-radius:999px;background:#111;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:900}
+.tutorial-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tutorial-note{background:#f7f7f4;border-radius:14px;padding:11px;font-size:12px;line-height:1.5}
+.tutorial-note b{display:block;margin-bottom:4px}
+.tutorial-source{display:flex;gap:8px;margin-top:14px}
+.tutorial-source a,.tutorial-source button{flex:1;text-decoration:none;text-align:center;border-radius:14px;padding:12px 10px;font-weight:850;font-size:12px}
+.tutorial-source a{background:#111;color:#fff;-webkit-text-fill-color:#fff}
+.tutorial-source button{border:1px solid var(--line);background:#fff;color:#111}
+.helpbtn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:12px;white-space:nowrap}
+
+
+.top-actions{display:flex;gap:7px;align-items:center}
+.install-mini{display:none}
+.install-mini.show{display:flex}
+.coach-card{padding:14px;margin-bottom:10px}
+.coach-open{width:100%;min-height:46px;border:0;border-radius:14px;background:#111;color:#fff;-webkit-text-fill-color:#fff;font-weight:900;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.coach-open:active{transform:translateY(1px)}
+button:focus-visible{outline:3px solid rgba(17,17,17,.18);outline-offset:2px}
+.share-actions button:active,.secondary-btn:active,.iconbtn:active{transform:translateY(1px);background:#f2f2ee}
+@media(max-height:720px){
+ .illustration{height:145px}
+ .cues{display:none}
+ .exercise-name{margin-top:10px}
+ .metric{min-height:58px;padding:8px}
+ .topbar{height:54px}
+ .hero{margin-top:2px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.0</span></div>
+    <div class="top-actions">
+      <button class="iconbtn install-mini" id="installBtn" aria-label="安裝 App"><span aria-hidden="true">＋</span><span>安裝</span></button>
+      <button class="iconbtn" id="settingsBtn" aria-label="設定"><span aria-hidden="true">⚙</span><span>設定</span></button>
+    </div>
+  </header>
+
+  <section id="todaySection" class="section active">
+    <div class="hero">
+      <div><h1 id="todayTitle">今天訓練</h1><div class="sub" id="todaySub"></div></div>
+      <div class="pill" id="todayPill">35–45 分</div>
+    </div>
+    <div class="mode-switch" id="modeSwitch">
+      <button class="mode-btn" data-mode="dumbbell">🏋️ 有啞鈴</button>
+      <button class="mode-btn" data-mode="bodyweight">🙌 只有徒手</button>
+    </div>
+    <div id="todayContent"></div>
+  </section>
+
+  <section id="planSection" class="section">
+    <div class="hero">
+      <div><h1>每週計畫</h1><div class="sub">新手版｜先穩定，再加難度</div></div>
+      <div class="pill">4–5 天活動</div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div class="kicker">WEEKLY RHYTHM</div>
+      <div class="plan-grid" id="planGrid"></div>
+      <div class="small-note">沒有臀推、臀橋、Donkey Kick 等臀部孤立訓練。深蹲、弓箭步仍會正常使用到臀肌。</div>
+    </div>
+  </section>
+
+  <section id="historySection" class="section">
+    <div class="hero">
+      <div><h1>訓練紀錄</h1><div class="sub">完成紀錄會影響下一次難度</div></div>
+      <div class="pill">LOCAL</div>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:10px">
+      <div class="kicker">SHARE & BACKUP</div>
+      <div class="share-actions">
+        <button id="shareLatestBtn"><span aria-hidden="true">↗</span><span>分享最新紀錄</span></button>
+        <button id="backupBtn"><span aria-hidden="true">⬇</span><span>備份全部資料</span></button>
+        <button id="importBackupBtn" style="grid-column:1/-1"><span aria-hidden="true">↥</span><span>匯入舊版備份</span></button>
+      </div>
+      <div class="data-note">正式版會固定使用同一個網址；GitHub 更新程式時，本機訓練資料不會跟著被覆蓋。仍建議偶爾備份全部資料。</div>
+    </div>
+    <div class="card coach-card">
+      <div class="kicker">COACH SYNC</div>
+      <div class="workout-title" style="font-size:17px;margin-top:3px">匯入教練調整</div>
+      <div class="sub" style="margin-top:4px">把 ChatGPT 回覆給你的「教練更新碼」貼進來，只會更新後續課表，不會刪掉歷史紀錄。</div>
+      <button class="coach-open" id="coachUpdateBtn"><span aria-hidden="true">↥</span><span>貼上教練更新碼</span></button>
+      <div class="data-note" id="coachStatus">目前尚未匯入教練調整。</div>
+    </div>
+    <div class="small-note" style="margin:2px 2px 10px">每筆紀錄下方都有「↗ 產生回報」，可直接分享或複製貼回 ChatGPT。</div><div id="historyList"></div>
+  </section>
+</div>
+
+<div class="bottom">
+  <div class="tabs">
+    <button class="tab active" data-tab="today">●<br>今天</button>
+    <button class="tab" data-tab="plan">▦<br>計畫</button>
+    <button class="tab" data-tab="history">↗<br>紀錄</button>
+  </div>
+</div>
+
+<div class="sheet" id="settingsSheet">
+  <div class="sheet-body">
+    <div class="sheet-title">訓練設定</div>
+    <div class="sub">已依你的 1.25×4、1.5×4、2×4 槓片設定；忽略空桿重量。</div>
+    <div class="field">
+      <label>可用「每支啞鈴」槓片總重（kg，以逗號分隔）</label>
+      <input id="weightsInput" value="2.5,3,4,5.5,6.5,7,9.5"/>
+    </div>
+    <div class="field">
+      <label>每次訓練時間目標（分鐘）</label>
+      <input id="durationInput" type="number" value="40"/>
+    </div>
+    
+    <div style="margin-top:14px;background:#f7f7f4;border-radius:16px;padding:12px 13px">
+      <div style="font-size:12px;font-weight:850">你的槓片</div>
+      <div style="font-size:12px;color:#666;margin-top:5px;line-height:1.6">
+        1.25 kg × 4　·　1.5 kg × 4　·　2 kg × 4<br>
+        兩支同重可組：2.5 / 3 / 4 / 5.5 / 6.5 / 7 / 9.5 kg
+      </div>
+    </div>
+<button class="save" id="saveSettings">儲存設定</button>
+    <div class="small-note">若出現尖銳關節痛、肩膀痛、膝蓋痛或腰痛，停止該動作，不要靠意志硬撐。</div>
+  </div>
+</div>
+
+<div class="sheet" id="summarySheet">
+  <div class="sheet-body">
+    <div class="sheet-title" id="summaryTitle">訓練摘要</div>
+    <div class="sub">把下面整段貼回這個對話，我就能依你的實際紀錄調整下一次。</div>
+    <div class="field"><textarea class="summary-box" id="summaryText" readonly></textarea></div>
+    <button class="save" id="shareSummaryBtn">分享到 ChatGPT / 其他 App</button>
+    <button class="secondary-btn" id="copySummaryBtn" style="width:100%;margin-top:8px">複製摘要</button>
+    <button class="secondary-btn" id="closeSummaryBtn" style="width:100%;margin-top:8px">關閉</button>
+  </div>
+</div>
+
+
+
+<div class="sheet" id="coachSheet">
+  <div class="sheet-body">
+    <div class="sheet-title">匯入教練調整</div>
+    <div class="sub">貼上 ChatGPT 給你的完整「教練更新碼」。它只修改下一次開始的課表參數，歷史紀錄不會被改寫。</div>
+    <div class="field"><textarea class="summary-box" id="coachText" placeholder='貼上 {"type":"strength_coach_update", ...}'></textarea></div>
+    <button class="save" id="applyCoachBtn">套用教練調整</button>
+    <button class="secondary-btn" id="closeCoachBtn" style="width:100%;margin-top:8px">取消</button>
+    <div class="small-note">App 會檢查格式與動作 ID；不符合格式時不會寫入資料。</div>
+  </div>
+</div>
+
+<div class="sheet" id="installSheet">
+  <div class="sheet-body">
+    <div class="sheet-title">安裝到手機</div>
+    <div class="tutorial-steps">
+      <div class="tutorial-step"><div class="step-no">i</div><div><b>iPhone / Safari</b><br>點 Safari 的「分享」→「加入主畫面」→「加入」。</div></div>
+      <div class="tutorial-step"><div class="step-no">A</div><div><b>Android / Chrome</b><br>點右上角選單 →「安裝應用程式」或「加到主畫面」。若瀏覽器支援，這裡也會直接跳出安裝視窗。</div></div>
+    </div>
+    <button class="secondary-btn" id="closeInstallBtn" style="width:100%;margin-top:14px">知道了</button>
+  </div>
+</div>
+
+<div class="sheet" id="importSheet">
+  <div class="sheet-body">
+    <div class="sheet-title">匯入舊版備份</div>
+    <div class="sub">把舊版「備份全部資料」產生的 JSON 貼到下面。匯入後會重新載入 App。</div>
+    <div class="field"><textarea class="summary-box" id="importText" placeholder="在這裡貼上完整備份 JSON"></textarea></div>
+    <button class="save" id="confirmImportBtn">匯入資料</button>
+    <button class="secondary-btn" id="closeImportBtn" style="width:100%;margin-top:8px">取消</button>
+    <div class="small-note">匯入會使用備份中的設定、進度與紀錄；你已經回傳給我的已知紀錄仍會在重新載入時自動合併。</div>
+  </div>
+</div>
+
+<div class="sheet tutorial-sheet" id="tutorialSheet">
+  <div class="sheet-body">
+    <div class="tutorial-handle"></div>
+    <div id="tutorialContent"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const storage = {
+  get(k,d){ try{return JSON.parse(localStorage.getItem(k)) ?? d}catch{return d} },
+  set(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
+};
+
+const svgs = {
+  goblet:`<svg viewBox="0 0 440 220" aria-label="高腳杯深蹲示意">
+    <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+    <g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none">
+      <circle cx="120" cy="42" r="20"/><path d="M120 64L120 120M120 82L92 105M120 82L148 105M120 120L96 171M120 120L151 170"/>
+      <rect x="108" y="83" width="24" height="30" rx="6" fill="#151515"/>
+      <circle cx="318" cy="60" r="20"/><path d="M318 82L306 126M308 96L280 111M310 97L337 111M306 126L270 155M306 126L346 155M270 155L258 191M346 155L356 191"/>
+      <rect x="296" y="98" width="24" height="30" rx="6" fill="#151515"/>
+    </g><path d="M205 55C205 105 205 115 205 160" stroke="#777" stroke-width="4" marker-end="url(#a1)"/><text x="28" y="207" font-size="14" fill="#777">站直</text><text x="290" y="207" font-size="14" fill="#777">下蹲</text></svg>`,
+  floorpress:`<svg viewBox="0 0 440 220"><defs><marker id="a2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+    <path d="M40 177H400" stroke="#bbb" stroke-width="4"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none">
+    <circle cx="120" cy="145" r="18"/><path d="M140 148L215 148M170 148L150 180M205 148L235 178M172 145L172 104M208 145L208 104"/>
+    <rect x="160" y="88" width="24" height="18" rx="4" fill="#151515"/><rect x="196" y="88" width="24" height="18" rx="4" fill="#151515"/>
+    <circle cx="320" cy="145" r="18"/><path d="M300 148L245 148M287 148L276 179M253 148L233 178M278 145L278 72M248 145L248 72"/>
+    <rect x="266" y="55" width="24" height="18" rx="4" fill="#151515"/><rect x="236" y="55" width="24" height="18" rx="4" fill="#151515"/>
+    </g><path d="M190 75V45" stroke="#777" stroke-width="4" marker-end="url(#a2)"/></svg>`,
+  row:`<svg viewBox="0 0 440 220"><defs><marker id="a3" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+    <rect x="60" y="130" width="150" height="14" rx="7" fill="#bbb"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none">
+    <circle cx="220" cy="52" r="18"/><path d="M205 68L165 108L132 126M165 108L205 128M132 126L110 177M205 128L220 177M174 98L172 160"/>
+    <rect x="160" y="159" width="24" height="16" rx="4" fill="#151515"/></g>
+    <path d="M175 155L191 112" stroke="#777" stroke-width="4" marker-end="url(#a3)"/><text x="245" y="105" font-size="15" fill="#777">背部保持穩定</text></svg>`,
+  shoulder:`<svg viewBox="0 0 440 220"><defs><marker id="a4" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="58" r="20"/><path d="M220 80V146M220 105L180 95M220 105L260 95M220 146L195 190M220 146L245 190M180 95L180 62M260 95L260 62"/>
+   <rect x="168" y="47" width="24" height="16" rx="4" fill="#151515"/><rect x="248" y="47" width="24" height="16" rx="4" fill="#151515"/></g>
+   <path d="M180 42V21M260 42V21" stroke="#777" stroke-width="4" marker-end="url(#a4)"/></svg>`,
+  calf:`<svg viewBox="0 0 440 220"><defs><marker id="a5" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="45" r="20"/><path d="M220 67V130M220 90L185 105M220 90L255 105M220 130L202 184M220 130L238 184"/></g>
+   <path d="M195 194H245" stroke="#bbb" stroke-width="4"/><path d="M280 175V130" stroke="#777" stroke-width="4" marker-end="url(#a5)"/><text x="300" y="153" font-size="15" fill="#777">腳跟上提</text></svg>`,
+  deadbug:`<svg viewBox="0 0 440 220"><defs><marker id="a6" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <path d="M45 180H395" stroke="#bbb" stroke-width="4"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="175" cy="154" r="18"/><path d="M195 155L255 155M220 153L190 102M232 154L280 102M255 155L290 108M255 155L340 165"/></g>
+   <path d="M205 94L175 61M285 101L320 65" stroke="#777" stroke-width="4" marker-end="url(#a6)"/></svg>`,
+  lunge:`<svg viewBox="0 0 440 220"><defs><marker id="a7" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="205" cy="48" r="19"/><path d="M205 69L205 124M205 87L175 103M205 87L235 103M205 124L165 153M165 153L145 190M205 124L252 158M252 158L288 186"/></g>
+   <path d="M315 80C350 95 350 125 315 145" stroke="#777" stroke-width="4" marker-end="url(#a7)"/><text x="285" y="65" font-size="15" fill="#777">向後跨</text></svg>`,
+  pushup:`<svg viewBox="0 0 440 220"><defs><marker id="a8" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <path d="M45 182H395" stroke="#bbb" stroke-width="4"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="120" cy="108" r="17"/><path d="M138 113L245 137L330 163M196 126L175 177M240 137L255 178"/></g>
+   <path d="M205 85V126" stroke="#777" stroke-width="4" marker-end="url(#a8)"/><text x="240" y="75" font-size="15" fill="#777">全身保持一直線</text></svg>`,
+  curl:`<svg viewBox="0 0 440 220"><defs><marker id="a9" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="45" r="20"/><path d="M220 67V132M220 90L185 112M220 90L255 112M185 112L170 155M255 112L270 155M220 132L195 185M220 132L245 185"/>
+   <rect x="158" y="151" width="24" height="16" rx="4" fill="#151515"/><rect x="258" y="151" width="24" height="16" rx="4" fill="#151515"/></g>
+   <path d="M170 143C145 115 150 86 178 76M270 143C295 115 290 86 262 76" stroke="#777" stroke-width="4" marker-end="url(#a9)"/></svg>`,
+  triceps:`<svg viewBox="0 0 440 220"><defs><marker id="a10" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs>
+   <g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="62" r="19"/><path d="M220 83V144M220 101L190 85M220 101L250 85M190 85L204 42M250 85L236 42M220 144L196 190M220 144L244 190"/>
+   <rect x="208" y="25" width="24" height="16" rx="4" fill="#151515"/></g><path d="M250 43V15" stroke="#777" stroke-width="4" marker-end="url(#a10)"/></svg>`,
+  march:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="45" r="20"/><path d="M220 67V126M220 90L185 108M220 90L255 108M220 126L185 165M185 165L175 195M220 126L260 146M260 146L285 126"/></g><path d="M305 118L305 72" stroke="#777" stroke-width="4"/><text x="314" y="98" fill="#777" font-size="14">膝蓋抬高</text></svg>`,
+  stepjack:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="45" r="20"/><path d="M220 67V128M220 88L170 60M220 88L270 60M220 128L174 185M220 128L266 185"/></g><path d="M135 180H78M305 180H362" stroke="#777" stroke-width="4"/><text x="145" y="211" fill="#777" font-size="14">左右跨步，不用跳</text></svg>`,
+  boxing:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="190" cy="48" r="20"/><path d="M190 70L205 129M200 92L150 103M203 92L288 76M205 129L178 185M205 129L244 181"/></g><circle cx="296" cy="74" r="9" fill="#151515"/><path d="M305 72H360" stroke="#777" stroke-width="4"/><text x="273" y="211" fill="#777" font-size="14">左右交替出拳</text></svg>`,
+  sidestep:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="48" r="20"/><path d="M220 70V127M220 92L185 107M220 92L255 107M220 127L190 180M220 127L250 180"/></g><path d="M155 195H95M285 195H345" stroke="#777" stroke-width="4"/><text x="153" y="216" fill="#777" font-size="14">快速左右移動</text></svg>`,
+  kneetap:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="45" r="20"/><path d="M220 67V125M220 90L185 128M220 90L250 118M220 125L188 175M188 175L175 199M220 125L270 150M270 150L248 119"/></g><text x="278" y="125" fill="#777" font-size="14">手碰對側膝</text></svg>`,
+  sideplank:`<svg viewBox="0 0 440 220"><path d="M45 182H395" stroke="#bbb" stroke-width="4"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="120" cy="105" r="18"/><path d="M140 112L235 130L330 160M180 120L165 177M235 130L235 70"/></g><text x="252" y="82" font-size="15" fill="#777">肩、髖、腳保持一直線</text></svg>`
+};
+
+const baseWorkouts = {
+ A:{name:"Full Body A",duration:"35–45 分", exercises:[
+  {id:"goblet",zh:"高腳杯深蹲",en:"Goblet Squat",weight:4,weightMode:"一顆",sets:2,min:8,max:12,target:10,rest:75,cues:["膝蓋對腳尖","核心收緊","下降穩定"],details:"啞鈴抱在胸前，腳約肩寬。膝蓋朝腳尖方向移動，穩定下蹲後站起。不要刻意夾臀。"},
+  {id:"row",zh:"單手啞鈴划船",en:"One-arm Dumbbell Row",weight:4,weightMode:"每邊",sets:2,min:8,max:12,target:10,rest:75,cues:["背部維持平","手肘往後拉","身體別旋轉"],details:"一手扶椅子保持軀幹穩定，另一手將啞鈴拉向腰側。想像是把手肘往後帶，而不是用手甩。"},
+  {id:"floorpress",zh:"啞鈴地板臥推",en:"Dumbbell Floor Press",weight:3,weightMode:"每手",sets:2,min:8,max:12,target:8,rest:75,cues:["手肘斜向後","肩膀別聳起","碰地再推"],details:"仰躺、膝蓋彎曲。啞鈴在胸口兩側，上臂碰到地板後再往上推。手肘不要完全張成 90°。"},
+  {id:"shoulder",zh:"啞鈴肩推",en:"Dumbbell Shoulder Press",weight:2.5,weightMode:"每手",sets:2,min:8,max:12,target:8,rest:60,cues:["肋骨別翻開","不要拱腰","控制下降"],details:"坐在穩固椅子上，啞鈴從肩膀兩側往上推。腹部保持穩定，不要用腰向前拱來借力。"},
+  {id:"calf",zh:"站姿提踵",en:"Standing Calf Raise",weight:0,weightMode:"徒手",sets:2,min:12,max:20,target:15,rest:45,cues:["頂端停一下","慢慢下降","不要彈"],details:"可輕扶牆壁保持平衡。腳跟慢慢抬高，最高點停一下，再慢慢降下。"},
+  {id:"deadbug",zh:"死蟲",en:"Dead Bug",weight:0,weightMode:"徒手",sets:2,min:6,max:10,target:6,rest:45,cues:["腰貼地","對側手腳伸","動作放慢"],details:"仰躺，髖膝約 90°。對側手腳慢慢伸遠；只伸到腰仍能貼住地板的位置。"}
+ ]},
+ B:{name:"Full Body B",duration:"35–45 分", exercises:[
+  {id:"row",zh:"單手啞鈴划船",en:"One-arm Dumbbell Row",weight:4,weightMode:"每邊",sets:2,min:8,max:12,target:10,rest:75,cues:["背部維持平","手肘往後拉","身體別旋轉"],details:"一手扶椅子保持軀幹穩定，另一手將啞鈴拉向腰側。"},
+  {id:"curl",zh:"二頭彎舉",en:"Biceps Curl",weight:2.5,weightMode:"每手",sets:2,min:8,max:12,target:8,rest:60,cues:["上臂不亂跑","不要甩腰","慢慢放下"],details:"上臂靠近身體，彎曲手肘把啞鈴帶高。不要用身體晃動借力。"},
+  {id:"triceps",zh:"過頭三頭伸展",en:"Overhead Triceps Extension",weight:2.5,weightMode:"一顆",sets:2,min:8,max:12,target:8,rest:60,cues:["手肘朝前","上臂固定","不要拱腰"],details:"雙手握一顆啞鈴置於頭頂，彎曲手肘將啞鈴降到頭後，再伸直手肘。"},
+  {id:"lunge",zh:"後跨弓箭步",en:"Reverse Lunge",weight:0,weightMode:"徒手",sets:2,min:6,max:10,target:8,rest:75,cues:["向後跨","前腳踩穩","身體保持直"],details:"站直後一腳往後跨，再彎曲雙膝下降。前腳穩定踩地站回起始姿勢。"},
+  {id:"pushup",zh:"伏地挺身",en:"Push-up",weight:0,weightMode:"體重",sets:2,min:6,max:10,target:6,rest:75,cues:["全身一直線","手肘斜後方","不要做到力竭"],details:"手掌略寬於肩，從頭到腳保持一直線。下降到可控制深度，再推回。若姿勢開始崩壞就停止。"},
+  {id:"sideplank",zh:"側平板",en:"Side Plank",weight:0,weightMode:"體重",sets:2,min:20,max:40,target:20,rest:45,isTime:true,cues:["肘在肩下","髖不要掉","身體一直線"],details:"手肘在肩膀正下方，抬起髖部，使肩、髖、腳大致形成一直線。太難可先屈膝版本。"}
+ ]}
+};
+
+const bodyweightWorkouts = {
+ A:{name:"Full Body A｜徒手",duration:"30–40 分", exercises:[
+  {id:"bw_squat",svg:"goblet",zh:"徒手深蹲",en:"Bodyweight Squat",weight:0,weightMode:"徒手",sets:2,min:10,max:16,target:10,startLevel:0,levels:["標準深蹲","3 秒慢下深蹲","底部停 1 秒深蹲","1.5 次深蹲"],rest:60,cues:["膝蓋對腳尖","核心收緊","腳掌踩穩"],details:"腳約肩寬，下蹲到能穩定控制的深度。當標準版變簡單時，系統會先放慢下降速度，再增加停頓。"},
+  {id:"bw_push",svg:"pushup",zh:"伏地挺身",en:"Push-up",weight:0,weightMode:"體重",sets:2,min:6,max:12,target:6,startLevel:1,levels:["跪姿伏地挺身","標準伏地挺身","3 秒下降伏地挺身","底部停 1 秒伏地挺身"],rest:75,cues:["身體一直線","手肘斜後方","保留 2 下餘力"],details:"你目前約能做 10 下標準伏地挺身，因此徒手模式從標準版開始。動作穩定後再用慢速或停頓增加難度。"},
+  {id:"bw_back",svg:"row",zh:"俯臥 Y-T-W",en:"Prone Y-T-W",weight:0,weightMode:"徒手",sets:2,min:6,max:12,target:8,startLevel:0,levels:["俯臥 Y-T-W","每個位置停 2 秒","慢速 Y-T-W"],rest:45,cues:["肩膀遠離耳朵","小幅抬高手臂","不要甩動"],details:"俯臥在墊上，手臂依序做 Y、T、W 形狀並輕抬。這不能完全取代划船，但在完全沒器材時可維持上背與肩胛控制。"},
+  {id:"bw_pike",svg:"shoulder",zh:"Pike 肩推",en:"Pike Push-up",weight:0,weightMode:"體重",sets:2,min:5,max:10,target:6,startLevel:0,levels:["牆面肩推","Pike Push-up","3 秒下降 Pike Push-up"],rest:60,cues:["頭往前下方","手掌推地","不要聳肩"],details:"若 Pike Push-up 太難就從牆面肩推開始。熟悉後再提高髖部，用肩膀主導推起。"},
+  {id:"bw_calf",svg:"calf",zh:"提踵",en:"Calf Raise",weight:0,weightMode:"徒手",sets:2,min:12,max:22,target:15,startLevel:0,levels:["雙腳提踵","頂端停 2 秒","單腳提踵"],rest:45,cues:["頂端停一下","控制下降","可扶牆"],details:"雙腳版本太簡單後，先增加頂端停頓，再進到單腳版本。"},
+  {id:"bw_deadbug",svg:"deadbug",zh:"死蟲",en:"Dead Bug",weight:0,weightMode:"徒手",sets:2,min:6,max:12,target:6,startLevel:0,levels:["標準死蟲","伸直腿死蟲","慢速死蟲"],rest:45,cues:["腰貼地","對側手腳","動作放慢"],details:"只伸到腰仍可貼地的位置。若腰拱起來，縮短腿伸出的距離。"}
+ ]},
+ B:{name:"Full Body B｜徒手",duration:"30–40 分", exercises:[
+  {id:"bw_lunge",svg:"lunge",zh:"後跨弓箭步",en:"Reverse Lunge",weight:0,weightMode:"徒手",sets:2,min:6,max:12,target:8,startLevel:0,levels:["標準後跨弓箭步","底部停 1 秒","3 秒慢下弓箭步"],rest:60,cues:["向後跨","前腳踩穩","身體保持直"],details:"不用啞鈴也能藉由增加次數、停頓與下降時間來進步。"},
+  {id:"bw_push_b",svg:"pushup",zh:"伏地挺身",en:"Push-up",weight:0,weightMode:"體重",sets:2,min:6,max:12,target:6,startLevel:1,levels:["跪姿伏地挺身","標準伏地挺身","窄距伏地挺身","3 秒下降窄距伏地挺身"],rest:75,cues:["核心收緊","手肘斜後方","不要硬撐"],details:"B 日後期會逐步加入較窄手距，提高三頭肌負荷；如果手腕或肩膀不舒服就維持標準版。"},
+  {id:"bw_snow",svg:"row",zh:"反向雪天使",en:"Reverse Snow Angel",weight:0,weightMode:"徒手",sets:2,min:8,max:15,target:10,startLevel:0,levels:["反向雪天使","每次停 1 秒","3 秒慢速雪天使"],rest:45,cues:["胸口輕貼地","肩胛滑動","不要聳肩"],details:"俯臥，手臂從身側沿地面上方慢慢畫弧到頭頂附近再回來。沒有拉力器材時用來補上背部活動。"},
+  {id:"bw_triceps",svg:"pushup",zh:"窄距伏地挺身",en:"Close-grip Push-up",weight:0,weightMode:"體重",sets:2,min:5,max:10,target:5,startLevel:0,levels:["跪姿窄距伏地挺身","標準窄距伏地挺身","底部停 1 秒窄距伏地挺身"],rest:60,cues:["手距略窄","手肘往後","肩膀別聳起"],details:"主打三頭肌。手腕或肩膀若覺得不舒服，改回標準伏地挺身。"},
+  {id:"bw_sideplank",svg:"sideplank",zh:"側平板",en:"Side Plank",weight:0,weightMode:"體重",sets:2,min:20,max:45,target:20,startLevel:0,levels:["屈膝側平板","直腿側平板","上側腿抬起側平板"],rest:45,isTime:true,cues:["肘在肩下","髖不要掉","身體一直線"],details:"以能維持軀幹穩定為優先，不需要撐到發抖失去姿勢。"},
+  {id:"bw_calf_b",svg:"calf",zh:"單／雙腳提踵",en:"Calf Raise",weight:0,weightMode:"徒手",sets:2,min:12,max:22,target:15,startLevel:0,levels:["雙腳提踵","頂端停 2 秒","單腳提踵"],rest:45,cues:["頂端停一下","慢慢下降","可扶牆"],details:"依平衡與小腿感受逐步從雙腳進到單腳。"}
+ ]}
+};
+
+
+const cardioPrograms = {
+ indoor:{
+   name:"室內低衝擊有氧",
+   subtitle:"不用器材・不需要跳",
+   emoji:"🏠",
+   exercises:[
+    {id:"march",zh:"原地抬膝快走",cue:"手臂一起擺動，步頻加快"},
+    {id:"stepjack",zh:"Step Jack 開合步",cue:"左右跨步，手臂往上帶"},
+    {id:"boxing",zh:"Shadow Boxing 空手拳擊",cue:"左右交替出拳，核心保持穩定"},
+    {id:"sidestep",zh:"快速側步",cue:"步伐小而快，膝蓋微彎"},
+    {id:"kneetap",zh:"站姿抬膝碰手",cue:"左右交替，不要聳肩"}
+   ]
+ },
+ boxing:{
+   name:"拳擊有氧",
+   subtitle:"上肢參與較多・強度稍高",
+   emoji:"🥊",
+   exercises:[
+    {id:"boxing",zh:"Jab 直拳",cue:"快速回收拳頭，肩膀放鬆"},
+    {id:"sidestep",zh:"拳擊側步",cue:"保持小步移動，不交叉腳"},
+    {id:"boxing",zh:"左右 1–2 連拳",cue:"左、右連續出拳，核心穩定"},
+    {id:"march",zh:"抬膝＋出拳",cue:"抬膝與對側出拳交替"},
+    {id:"boxing",zh:"自由組合拳",cue:"速度不用極限，持續移動即可"}
+   ]
+ }
+};
+const cardioLevels = [
+ {work:40,rest:20,rounds:5,label:"Level 1"},
+ {work:45,rest:15,rounds:5,label:"Level 2"},
+ {work:50,rest:10,rounds:5,label:"Level 3"},
+ {work:45,rest:15,rounds:6,label:"Level 4"}
+];
+
+const weekly = [
+ {name:"星期一",type:"strength",label:"A / B 交替"},
+ {name:"星期二",type:"cardio",label:"有氧｜室內 / 戶外自選"},
+ {name:"星期三",type:"rest",label:"休息"},
+ {name:"星期四",type:"strength",label:"A / B 交替"},
+ {name:"星期五",type:"recovery",label:"休息／散步"},
+ {name:"星期六",type:"strength",label:"A / B 交替"},
+ {name:"星期日",type:"rest",label:"休息"}
+];
+
+let settings = storage.get("strengthSettings",{weights:[2.5,3,4,5.5,6.5,7,9.5],duration:40,mode:"dumbbell"});
+settings.mode = settings.mode || "dumbbell";
+settings.cardioType = settings.cardioType || "indoor";
+settings.cardioLevel = Number.isInteger(settings.cardioLevel)?settings.cardioLevel:0;
+const actualPlateWeights=[2.5,3,4,5.5,6.5,7,9.5];
+const sameWeights=(a,b)=>Array.isArray(a)&&a.length===b.length&&a.every((v,i)=>Number(v)===Number(b[i]));
+if(!sameWeights(settings.weights,actualPlateWeights)){
+ settings.weights=actualPlateWeights.slice();
+ storage.set("strengthSettings",settings);
+}
+
+let progress = storage.get("strengthProgress",{});
+let history = storage.get("strengthHistory",[]);
+
+/* Personal workout history and coach decisions live only in localStorage.
+   Do not hard-code private training records into the public GitHub repository. */
+let coachMeta = storage.get("strengthCoachMeta", null);
+
+let activeIndex=0, restTimer=null, restLeft=0, currentWorkoutKey=null, sessionState={};
+let cardioState={running:false,paused:false,type:null,index:0,round:1,phase:"work",left:0,timer:null,startedAt:null};
+
+function dateKey(d=new Date()){
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function localDay(date=new Date()){
+ const d = date.getDay();
+ return d===0 ? 6 : d-1;
+}
+function weekParityFor(date){
+ const start=new Date(date.getFullYear(),0,1);
+ const diff=Math.floor((new Date(date.getFullYear(),date.getMonth(),date.getDate())-start)/86400000);
+ return Math.floor((diff+start.getDay())/7)%2;
+}
+function parseLocalDateKey(key){
+ const [y,m,d]=String(key).split("-").map(Number);
+ return new Date(y,m-1,d);
+}
+function nearestMondayKey(){
+ const d=new Date();
+ const shift=(d.getDay()+6)%7;
+ d.setHours(12,0,0,0); d.setDate(d.getDate()-shift);
+ return dateKey(d);
+}
+settings.strengthAnchorDate = settings.strengthAnchorDate || nearestMondayKey();
+settings.strengthAnchorType = settings.strengthAnchorType || "A";
+storage.set("strengthSettings",settings);
+
+function strengthSlotIndex(date){
+ const anchor=parseLocalDateKey(settings.strengthAnchorDate);
+ const target=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+ if(target<anchor) return 0;
+ let idx=-1;
+ for(let d=new Date(anchor); d<=target; d.setDate(d.getDate()+1)){
+   const wd=d.getDay();
+   if(wd===1||wd===4||wd===6) idx++;
+ }
+ return Math.max(0,idx);
+}
+function planForDate(date){
+ let plan=weekly[localDay(date)];
+ if(plan.type==="strength"){
+   const evenType=settings.strengthAnchorType==="B"?"B":"A"; const type=strengthSlotIndex(date)%2===0?evenType:(evenType==="A"?"B":"A");
+   return {...plan,type,label:`Full Body ${type}`};
+ }
+ return {...plan};
+}
+function getTodayPlan(){ return planForDate(new Date()); }
+function sameLocalDay(iso,date=new Date()){ return dateKey(new Date(iso))===dateKey(date); }
+function strengthEntryOn(date,plan=planForDate(date)){
+ if(!(plan.type==="A"||plan.type==="B")) return null;
+ return history.find(h=>sameLocalDay(h.date,date) && String(h.workout||"").includes(`Full Body ${plan.type}`)) || null;
+}
+function anyStrengthEntryOn(date){
+ return history.find(h=>sameLocalDay(h.date,date) && String(h.workout||"").includes("Full Body")) || null;
+}
+function cardioEntryOn(date=new Date()){
+ return history.find(h=>sameLocalDay(h.date,date) && h.kind==="cardio") || null;
+}
+function nextStrengthAfter(fromDate=new Date(),skipToday=false){
+ for(let i=skipToday?1:0;i<=14;i++){
+   const d=new Date(fromDate.getFullYear(),fromDate.getMonth(),fromDate.getDate()+i);
+   const p=planForDate(d);
+   if(p.type==="A"||p.type==="B") return {date:d,plan:p};
+ }
+ return null;
+}
+function shortDate(d){
+ return d.toLocaleDateString("zh-TW",{month:"numeric",day:"numeric",weekday:"short"});
+}
+function modeLabel(mode){ return mode==="bodyweight"?"只有徒手":"有啞鈴"; }
+function nextWorkoutHTML(next){
+ if(!next) return "";
+ return `<div class="next-card"><div><div class="when">下一次重訓</div><strong>${shortDate(next.date)}・${next.plan.label}</strong></div><div class="arrow">→</div></div>`;
+}
+function keyFor(ex){ return ex.id; }
+function applyProgress(ex){
+ const p=progress[keyFor(ex)]||{};
+ const out={...ex,weight:p.weight??ex.weight,target:p.target??ex.target,sets:p.sets??ex.sets};
+ if(ex.levels){
+   const idx=Math.max(0,Math.min(ex.levels.length-1,p.levelIndex??ex.startLevel??0));
+   out.levelIndex=idx; out.levelLabel=ex.levels[idx];
+ }
+ return out;
+}
+function currentWorkout(){
+ const set=settings.mode==="bodyweight"?bodyweightWorkouts:baseWorkouts;
+ return set[currentWorkoutKey];
+}
+
+
+const tutorialLibrary = {
+ goblet:{
+  steps:["雙手把啞鈴直立抱在胸前，腳約肩寬，腳尖可微微外開。","先收緊腹部，胸口自然抬起；屁股往後、往下坐。","膝蓋朝腳尖方向移動，不要往內夾；腳掌全程踩穩。","下到你仍能保持背部穩定的深度，再把地板往下踩站起。"],
+  feel:"大腿前側為主；臀腿也會參與，但不需要刻意夾臀。",
+  mistakes:"膝蓋內夾、腳跟浮起、含胸、啞鈴離胸太遠。",
+  source:"ACE Goblet Squat",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/362/goblet-squat/"
+ },
+ floorpress:{
+  steps:["仰躺在墊上，膝蓋彎曲、腳踩地，兩手各拿啞鈴放在胸口兩側。","肩胛骨輕輕往地面固定，手肘斜向身體約 30–45°，不要整個張平。","把啞鈴往上推，手腕保持在手肘上方。","慢慢下降，直到上臂輕碰地板，再開始下一下。"],
+  feel:"胸、前三角肌、三頭肌。",
+  mistakes:"聳肩、手肘張成 90°、手腕折彎、下降時直接砸地。",
+  source:"Men's Health Floor Press 示範",
+  url:"https://www.menshealth.com/fitness/a30273251/floor-press-workout/"
+ },
+ row:{
+  steps:["一手扶穩固椅子，另一手拿啞鈴；髖部往後，背保持平。","先讓拿啞鈴的手自然垂下，不要聳肩。","把手肘往後、往腰側拉，而不是把啞鈴拉到肩膀。","頂端短暫停住，再控制啞鈴下降；身體不要跟著旋轉。"],
+  feel:"背闊肌、肩胛骨周圍；手臂會輔助。",
+  mistakes:"聳肩、扭腰、用身體甩、手肘往外張太多。",
+  source:"ACE Single-arm Row",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/126/single-arm-row/"
+ },
+ shoulder:{
+  steps:["坐在穩固椅子上，腳踩地，啞鈴放在肩膀兩側。","腹部收緊，肋骨不要往前翻；手肘略在身體前方。","把啞鈴往上推到手臂接近伸直，不必互撞。","慢慢下降回肩膀附近；若腰開始拱，代表重量或次數太多。"],
+  feel:"肩膀、三頭肌。",
+  mistakes:"拱腰、聳肩、手肘完全朝兩側、為了完成次數而甩動。",
+  source:"BarBend Dumbbell Shoulder Press",
+  url:"https://barbend.com/dumbbell-shoulder-press/"
+ },
+ calf:{
+  steps:["站直，可用一手輕扶牆壁保持平衡。","腳掌踩穩，慢慢把腳跟抬高。","最高處停一下，感受小腿收縮。","控制腳跟下降到底，不要上下彈。"],
+  feel:"小腿後側。",
+  mistakes:"靠彈跳、腳踝往外翻、動作太快。",
+  source:"ACE 小腿訓練資料庫",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/body-part/legs-calves-and-shins/gastrocnemius/"
+ },
+ deadbug:{
+  steps:["仰躺，雙手指向天花板；髖、膝都彎約 90°。","先收緊腹部，讓下背維持貼近地面。","右手往頭頂方向伸、左腿往前伸，同時慢慢移動。","只伸到腰仍能貼地的位置，再回來換邊。"],
+  feel:"腹部深層核心；不應該主要感覺腰痠。",
+  mistakes:"腰拱離地、動作太快、一次把腿伸太低。",
+  source:"NASM Dead Bug",
+  url:"https://www.nasm.org/resource-center/exercise-library/dead-bug"
+ },
+ lunge:{
+  steps:["站直，雙腳約髖寬。","一腳往後跨一個舒服距離，前腳整個踩穩。","兩膝彎曲往下，軀幹保持穩定；前膝方向跟腳尖一致。","前腳踩地，把身體推回站姿，再換邊。"],
+  feel:"前腳大腿、後腳協助平衡；臀腿會自然參與。",
+  mistakes:"前膝往內夾、步距太窄導致搖晃、身體過度前倒。",
+  source:"ACE Exercise Library",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/"
+ },
+ pushup:{
+  steps:["手掌略寬於肩，手指朝前；從頭到腳保持一直線。","腹部與臀部一起收緊，不要讓腰塌下去。","手肘斜向後方，慢慢把胸口往地面靠近。","維持整條身體一起移動，再把地板推開回起始位置。"],
+  feel:"胸、三頭肌、肩膀；核心負責維持身體一直線。",
+  mistakes:"腰塌、屁股抬太高、手肘完全張開、脖子往前伸。",
+  source:"NASM Push-Up",
+  url:"https://www.nasm.org/resource-center/exercise-library/push-up"
+ },
+ curl:{
+  steps:["站直或坐直，啞鈴放身體兩側，手肘靠近身體。","上臂盡量不動，只彎曲手肘把啞鈴抬高。","到最高點不用硬把手肘往前送。","慢慢把啞鈴放下，不要靠身體甩動。"],
+  feel:"二頭肌、前臂。",
+  mistakes:"甩腰、手肘往前跑、下降太快。",
+  source:"NASM Curl 動作原則",
+  url:"https://www.nasm.org/resource-center/exercise-library/barbell-bicep-curl"
+ },
+ triceps:{
+  steps:["雙手托住一顆啞鈴，舉到頭頂上方。","上臂盡量靠近耳朵，手肘朝前，不要整個向外張。","彎曲手肘，慢慢把啞鈴降到頭後。","只伸直手肘把啞鈴推回，不要用腰往前頂。"],
+  feel:"上臂後側三頭肌。",
+  mistakes:"拱腰、手肘張太開、下降太低導致肩膀不舒服。",
+  source:"ACE Exercise Library",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/"
+ },
+ sideplank:{
+  steps:["側躺，手肘放在肩膀正下方。","先把肩膀遠離耳朵，再收緊腹部。","屈膝版用膝蓋與前臂支撐；直腿版用腳側與前臂支撐。","抬起髖部，讓肩、髖、膝或腳大致成一直線。"],
+  feel:"側腹核心；肩膀會負責支撐但不應該夾痛。",
+  mistakes:"髖掉下去、肩膀聳起、手肘離肩太遠。",
+  source:"ACE Modified Side Plank",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/100/side-plank-modified/"
+ },
+ ytw:{
+  steps:["俯臥在墊上，額頭可輕靠毛巾，脖子保持放鬆。","Y：雙臂斜向頭頂，拇指朝上，手臂只抬一點點。","T：雙臂移到身體兩側成 T，輕夾肩胛骨。","W：手肘彎曲成 W，再輕輕把肩胛骨往後下方收。"],
+  feel:"肩胛骨中間、上背與後肩；不需要把胸口抬很高。",
+  mistakes:"聳肩、抬手太高、用下背硬撐、甩動手臂。",
+  source:"Physiotherapist Prone Y-T-W",
+  url:"https://prophysiotherapy.in/exercises/prone-y-t-w"
+ },
+ pike:{
+  steps:["若目前是牆面版：雙手推牆、身體斜直，彎手肘讓胸口靠近牆再推回。","進階 Pike：雙手撐地，髖部抬高成倒 V。","手肘彎曲，頭往雙手前方／中間慢慢下降。","用肩膀把地板推開回到倒 V；全程不要塌腰。"],
+  feel:"肩膀、三頭肌；Pike 版本會比一般伏地挺身更集中肩膀。",
+  mistakes:"手肘完全外張、頭往正下方砸、腰塌、聳肩。",
+  source:"NASM Pike Push-Up",
+  url:"https://www.nasm.org/resource-center/exercise-library/pike-push-up"
+ },
+ snow:{
+  steps:["俯臥，額頭朝下，手臂放身體兩側，手掌可朝地。","肩膀遠離耳朵，手臂只需離地一點點。","像在雪地畫天使一樣，把雙臂慢慢沿外側掃向頭頂。","再沿同一路徑慢慢回到身側；全程不要甩。"],
+  feel:"上背、後肩、肩胛周圍。",
+  mistakes:"大幅抬胸、聳肩、手臂甩得太快。",
+  source:"Reverse Snow Angel 圖解",
+  url:"https://bryllim.github.io/workout-guide/exercises/reverse-snow-angel/"
+ }
+};
+
+function currentLevelName(ex){
+ if(!ex.levels) return "";
+ const p=progress[ex.id]||{};
+ const idx=Math.max(0,Math.min(ex.levels.length-1,p.level??ex.startLevel??0));
+ return ex.levels[idx];
+}
+function tutorialKeyFor(ex){
+ if(["goblet","floorpress","row","shoulder","calf","deadbug","lunge","pushup","curl","triceps","sideplank"].includes(ex.id)) return ex.id;
+ if(ex.id==="bw_squat") return "goblet";
+ if(ex.id==="bw_push"||ex.id==="bw_push_b"||ex.id==="bw_triceps") return "pushup";
+ if(ex.id==="bw_back") return "ytw";
+ if(ex.id==="bw_pike") return "pike";
+ if(ex.id==="bw_calf"||ex.id==="bw_calf_b") return "calf";
+ if(ex.id==="bw_deadbug") return "deadbug";
+ if(ex.id==="bw_lunge") return "lunge";
+ if(ex.id==="bw_snow") return "snow";
+ if(ex.id==="bw_sideplank") return "sideplank";
+ return null;
+}
+function openTutorial(ex){
+ const key=tutorialKeyFor(ex), t=tutorialLibrary[key];
+ if(!t) return;
+ const version=currentLevelName(ex);
+ $("#tutorialContent").innerHTML=`
+   <div class="tutorial-head">
+     <div>
+       <div class="kicker">HOW TO</div>
+       <h2>${ex.zh}</h2>
+       <div class="sub">${ex.en}</div>
+       ${version?`<div class="tutorial-version">你現在做：${version}</div>`:""}
+     </div>
+     <button class="iconbtn" id="closeTutorialBtn">×</button>
+   </div>
+   <div class="tutorial-section">
+     <h3>照這 4 步做</h3>
+     <div class="tutorial-steps">${t.steps.map((s,i)=>`<div class="tutorial-step"><div class="step-no">${i+1}</div><div>${s}</div></div>`).join("")}</div>
+   </div>
+   <div class="tutorial-section tutorial-grid">
+     <div class="tutorial-note"><b>應該感覺到</b>${t.feel}</div>
+     <div class="tutorial-note"><b>常見錯誤</b>${t.mistakes}</div>
+   </div>
+   <div class="tutorial-source">
+     <a href="${t.url}" target="_blank" rel="noopener">${t.source} ↗</a>
+     <button id="closeTutorialBtn2">回去訓練</button>
+   </div>
+   <div class="small-note">外部頁面是額外示範；實際以你目前 App 顯示的動作版本與次數為準。若出現尖銳疼痛就停止。</div>`;
+ $("#tutorialSheet").classList.add("show");
+ $("#closeTutorialBtn").onclick=closeTutorial;
+ $("#closeTutorialBtn2").onclick=closeTutorial;
+}
+function closeTutorial(){ $("#tutorialSheet").classList.remove("show"); }
+
+const plateRecipes={
+ "2.5":"每側 1.25 kg",
+ "3":"每側 1.5 kg",
+ "4":"每側 2 kg",
+ "5.5":"每側 1.25 + 1.5 kg",
+ "6.5":"每側 1.25 + 2 kg",
+ "7":"每側 1.5 + 2 kg",
+ "9.5":"每側 1.25 + 1.5 + 2 kg"
+};
+function plateRecipe(weight){
+ return plateRecipes[String(Number(weight))] || "";
+}
+function weightText(ex){
+ if(ex.levels) return ex.levelLabel;
+ if(ex.weight===0) return ex.weightMode;
+ return `${ex.weightMode} ${ex.weight} kg`;
+}
+function repsText(ex){ return ex.isTime?`${ex.target} 秒`:`${ex.target} 下`; }
+
+function renderToday(){
+ const now=new Date(), plan=getTodayPlan();
+ renderedDateKey=dateKey(now);
+ $("#todaySub").textContent = now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"long"});
+ document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===settings.mode));
+
+ const completed=anyStrengthEntryOn(now);
+ if((plan.type==="A"||plan.type==="B") && completed){
+   const next=nextStrengthAfter(now,true);
+   $("#todayTitle").textContent="今日已完成";
+   $("#todayPill").textContent="✓ DONE";
+   $("#todayContent").innerHTML=`
+    <div class="card status-card">
+      <div class="status-main">
+        <div class="status-icon">✓</div>
+        <div class="status-copy">
+          <div class="kicker">TODAY COMPLETE</div>
+          <h2>${completed.workout}</h2>
+          <p>${modeLabel(completed.mode)}｜今天的重訓已記錄。今天不需要再做第二套，接下來以恢復為主。</p>
+        </div>
+      </div>
+      ${nextWorkoutHTML(next)}
+      <div class="status-actions">
+        <button class="primary" id="todaySummaryBtn">查看／複製摘要</button>
+        <button class="secondary" id="todayHistoryBtn">查看紀錄</button>
+      </div>
+    </div>`;
+   $("#todaySummaryBtn").onclick=()=>showSummary(makeSummary(completed),"今天訓練摘要");
+   $("#todayHistoryBtn").onclick=()=>activateTab("history");
+   return;
+ }
+
+ if(plan.type==="A"||plan.type==="B"){
+   currentWorkoutKey=plan.type;
+   const w=currentWorkout();
+   $("#todayTitle").textContent=w.name;
+   $("#todayPill").textContent=w.duration;
+   renderWorkout();
+ }else{
+   if(plan.type==="cardio"){
+     const cardioDone=cardioEntryOn(now);
+     $("#todayTitle").textContent=cardioDone?"今日有氧已完成":"有氧日";
+     $("#todayPill").textContent=cardioDone?"✓ DONE":"20–30 分";
+     renderCardioHome(cardioDone);
+     return;
+   }
+   $("#todayTitle").textContent="恢復日";
+   $("#todayPill").textContent="恢復";
+   const icon="☁️";
+   const body=plan.type==="recovery"?"今天以恢復為主。想動的話散步 20–30 分鐘，不需要額外重訓。":"今天休息。正常活動即可，讓肌肉恢復。";
+   const y=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1);
+   const yesterday=anyStrengthEntryOn(y);
+   const next=nextStrengthAfter(now,false);
+   $("#todayContent").innerHTML=`
+     <div class="card empty">
+       <div class="big">${icon}</div><h2>${plan.label}</h2><p>${body}</p>
+       <div class="daily-context">
+         ${yesterday?`<div class="context-row"><strong>昨天 ✓ ${yesterday.workout}</strong><span>已完成</span></div>`:""}
+       </div>
+       ${nextWorkoutHTML(next)}
+     </div>`;
+ }
+}
+function cardioMinutes(levelIndex=settings.cardioLevel){
+ const l=cardioLevels[levelIndex]||cardioLevels[0];
+ return Math.round((l.work+l.rest)*5*l.rounds/60);
+}
+function renderCardioHome(done=null){
+ if(done){
+   const next=nextStrengthAfter(new Date(),false);
+   $("#todayContent").innerHTML=`
+    <div class="card status-card">
+      <div class="status-main">
+        <div class="status-icon">✓</div>
+        <div class="status-copy">
+          <div class="kicker">CARDIO COMPLETE</div>
+          <h2>${done.workout}</h2>
+          <p>${done.durationMin||"—"} 分鐘｜體感：${feedbackText(done.feedback)}。今天有氧已完成，不需要再補第二套。</p>
+        </div>
+      </div>
+      ${nextWorkoutHTML(next)}
+    </div>`;
+   return;
+ }
+ const type=settings.cardioType||"indoor";
+ const level=cardioLevels[settings.cardioLevel]||cardioLevels[0];
+ const y=new Date(); y.setDate(y.getDate()-1);
+ const yesterday=anyStrengthEntryOn(y);
+ $("#todayContent").innerHTML=`
+  <div class="card" style="padding:16px">
+    <div class="kicker">CHOOSE CARDIO</div>
+    <div class="workout-title" style="margin-top:3px">今天想怎麼做？</div>
+    <div class="sub" style="margin-top:4px">預設推薦室內低衝擊；不用跑步機，也不用出門。</div>
+    <div class="cardio-picker">
+      <button class="cardio-choice ${type==="indoor"?"selected":""}" data-cardio="indoor">
+        <div class="cardio-emoji">🏠</div><div><strong>室內低衝擊</strong><small>${cardioMinutes()} 分鐘・${level.work} 秒動 / ${level.rest} 秒休・${level.rounds} 輪</small></div>
+      </button>
+      <button class="cardio-choice ${type==="boxing"?"selected":""}" data-cardio="boxing">
+        <div class="cardio-emoji">🥊</div><div><strong>拳擊有氧</strong><small>${cardioMinutes()} 分鐘・手腳一起動，強度稍高</small></div>
+      </button>
+      <button class="cardio-choice ${type==="walk"?"selected":""}" data-cardio="walk">
+        <div class="cardio-emoji">🚶</div><div><strong>戶外快走</strong><small>30–35 分鐘・能講話但不能輕鬆唱歌的速度</small></div>
+      </button>
+    </div>
+    ${yesterday?`<div class="context-row" style="margin-top:10px"><strong>昨天 ✓ ${yesterday.workout}</strong><span>已完成</span></div>`:""}
+    <button class="cardio-start" id="cardioStartBtn">${type==="walk"?"開始快走紀錄":"開始今日有氧"}</button>
+    <div class="small-note">目標不是做到喘不過氣。新手先維持中等強度；如果今天做完覺得「太輕」，下次 App 會逐級增加工作時間或輪數。</div>
+  </div>`;
+ document.querySelectorAll("[data-cardio]").forEach(b=>b.onclick=()=>{
+   settings.cardioType=b.dataset.cardio; storage.set("strengthSettings",settings); renderCardioHome();
+ });
+ $("#cardioStartBtn").onclick=()=>startCardio(type);
+}
+function startCardio(type){
+ if(type==="walk"){
+   cardioState={running:true,paused:false,type:"walk",index:0,round:1,phase:"walk",left:30*60,timer:null,startedAt:Date.now()};
+   renderWalkTimer();
+   cardioState.timer=setInterval(cardioTick,1000);
+   return;
+ }
+ const level=cardioLevels[settings.cardioLevel]||cardioLevels[0];
+ cardioState={running:true,paused:false,type,index:0,round:1,phase:"work",left:level.work,timer:null,startedAt:Date.now()};
+ renderCardioSession();
+ cardioState.timer=setInterval(cardioTick,1000);
+}
+function cardioTick(){
+ if(!cardioState.running||cardioState.paused) return;
+ cardioState.left--;
+ if(cardioState.left<=0){
+   if(cardioState.type==="walk"){ finishCardioSession(); return; }
+   advanceCardioPhase();
+ }
+ if(cardioState.type==="walk") updateWalkClock(); else updateCardioClock();
+}
+function advanceCardioPhase(){
+ const level=cardioLevels[settings.cardioLevel]||cardioLevels[0];
+ const prog=cardioPrograms[cardioState.type];
+ if(cardioState.phase==="work"){
+   cardioState.phase="rest"; cardioState.left=level.rest; beep(650,.08);
+ }else{
+   cardioState.index++;
+   if(cardioState.index>=prog.exercises.length){
+     cardioState.index=0; cardioState.round++;
+   }
+   if(cardioState.round>level.rounds){ finishCardioSession(); return; }
+   cardioState.phase="work"; cardioState.left=level.work; beep(850,.1);
+ }
+ renderCardioSession();
+}
+function formatClock(sec){
+ const m=Math.floor(sec/60), s=sec%60;
+ return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+function renderCardioSession(){
+ const prog=cardioPrograms[cardioState.type], level=cardioLevels[settings.cardioLevel]||cardioLevels[0];
+ const ex=prog.exercises[cardioState.index];
+ const resting=cardioState.phase==="rest";
+ $("#todayContent").innerHTML=`
+  <div class="card">
+    <div class="workout-head">
+      <div><div class="kicker">${level.label} · ${prog.name}</div><div class="workout-title">${resting?"休息":"第 "+cardioState.round+" 輪"}</div></div>
+      <div class="progress-text">${cardioState.index+1} / ${prog.exercises.length}</div>
+    </div>
+    <div class="cardio-session">
+      <div class="illustration"><div class="badge">${resting?"REST":"MOVE"}</div>${svgs[ex.id]}</div>
+      <div class="exercise-name"><div><h2>${resting?"準備下一個："+ex.zh:ex.zh}</h2><div class="en">${ex.cue}</div></div></div>
+      <div class="cardio-clock" id="cardioClock">${formatClock(cardioState.left)}</div>
+      <div class="cardio-phase">${resting?"放慢呼吸、原地輕踏":"持續動，不需要做到力竭"}</div>
+      <div class="cardio-round">第 ${cardioState.round} / ${level.rounds} 輪</div>
+      <div class="cardio-mini">
+        <div><span>工作</span><b>${level.work}s</b></div>
+        <div><span>休息</span><b>${level.rest}s</b></div>
+        <div><span>總長</span><b>約 ${cardioMinutes()}m</b></div>
+      </div>
+      <div class="cardio-timer-actions">
+        <button class="cardio-pause" id="cardioPauseBtn">${cardioState.paused?"繼續":"暫停"}</button>
+        <button class="cardio-skip" id="cardioSkipBtn">跳到下一段</button>
+      </div>
+    </div>
+  </div>`;
+ $("#cardioPauseBtn").onclick=()=>{cardioState.paused=!cardioState.paused;renderCardioSession()};
+ $("#cardioSkipBtn").onclick=()=>{cardioState.left=1;cardioTick()};
+}
+function updateCardioClock(){ if($("#cardioClock")) $("#cardioClock").textContent=formatClock(cardioState.left); }
+function renderWalkTimer(){
+ $("#todayContent").innerHTML=`
+  <div class="card cardio-complete">
+    <div class="big">🚶</div>
+    <h2>戶外快走</h2>
+    <p class="sub">維持「會喘、會熱，但還能講完整一句話」的速度。</p>
+    <div class="cardio-clock" id="walkClock">${formatClock(cardioState.left)}</div>
+    <div class="cardio-timer-actions">
+      <button class="cardio-pause" id="walkPauseBtn">${cardioState.paused?"繼續":"暫停"}</button>
+      <button class="cardio-skip" id="walkFinishBtn">提早完成</button>
+    </div>
+  </div>`;
+ $("#walkPauseBtn").onclick=()=>{cardioState.paused=!cardioState.paused;renderWalkTimer()};
+ $("#walkFinishBtn").onclick=()=>finishCardioSession();
+}
+function updateWalkClock(){ if($("#walkClock")) $("#walkClock").textContent=formatClock(cardioState.left); }
+function stopCardioTimer(){ if(cardioState.timer) clearInterval(cardioState.timer); cardioState.timer=null; }
+function finishCardioSession(){
+ stopCardioTimer();
+ const mins=Math.max(1,Math.round((Date.now()-cardioState.startedAt)/60000));
+ const type=cardioState.type;
+ const name=type==="walk"?"戶外快走":cardioPrograms[type].name;
+ cardioState.running=false;
+ $("#todayContent").innerHTML=`
+  <div class="card cardio-complete">
+    <div class="bigcheck">✓</div><h2>有氧完成</h2>
+    <p class="sub">${name}｜約 ${mins} 分鐘</p>
+    <div class="feedback-title" style="margin-top:15px">今天整體強度怎麼樣？</div>
+    <div class="cardio-feedback">
+      <button data-cardio-feedback="light">😴 太輕</button>
+      <button data-cardio-feedback="good">🙂 剛好</button>
+      <button data-cardio-feedback="heavy">😣 太累</button>
+    </div>
+    <div class="cardio-next">選完後才會儲存。若「太輕」，室內課下次會逐級增加工作時間／輪數；「太累」則會降一級。</div>
+  </div>`;
+ document.querySelectorAll("[data-cardio-feedback]").forEach(b=>b.onclick=()=>saveCardioResult(type,name,mins,b.dataset.cardioFeedback));
+}
+function saveCardioResult(type,name,mins,feedback){
+ if(type!=="walk"){
+   if(feedback==="light") settings.cardioLevel=Math.min(cardioLevels.length-1,settings.cardioLevel+1);
+   if(feedback==="heavy") settings.cardioLevel=Math.max(0,settings.cardioLevel-1);
+   storage.set("strengthSettings",settings);
+ }
+ const entry={date:new Date().toISOString(),kind:"cardio",workout:name,mode:"cardio",cardioType:type,durationMin:mins,feedback,level:settings.cardioLevel};
+ history.unshift(entry); history=history.slice(0,50); storage.set("strengthHistory",history);
+ renderToday();
+}
+
+function initSession(){
+ const exs=currentWorkout().exercises.map(applyProgress);
+ exs.forEach(ex=>{
+   if(!sessionState[ex.id]) sessionState[ex.id]={
+     done:Array(ex.sets).fill(false),feedback:null,
+     prescribedWeight:ex.weight,prescribedTarget:ex.target,
+     prescribedLevel:ex.levelLabel||null, prescribedMode:settings.mode
+   };
+ });
+}
+function renderWorkout(){
+ initSession();
+ const ex=applyProgress(currentWorkout().exercises[activeIndex]);
+ const state=sessionState[ex.id]||{done:Array(ex.sets).fill(false),feedback:null};
+ const doneCount=state.done.filter(Boolean).length;
+ const allDone=doneCount===ex.sets;
+ const progressPct=((activeIndex + doneCount/ex.sets)/currentWorkout().exercises.length)*100;
+ const setRows=Array.from({length:ex.sets},(_,i)=>`
+   <div class="set-row">
+     <div class="set-label">SET ${i+1}</div>
+     <div class="repbox">${repsText(ex)}</div>
+     <div class="repbox">${weightText(ex)}</div>
+     <button class="donebtn ${state.done[i]?'done':''}" data-set="${i}">${state.done[i]?'✓':'○'}</button>
+   </div>`).join("");
+ $("#todayContent").innerHTML=`
+ <div class="card">
+   <div class="workout-head">
+     <div><div class="kicker">TODAY'S WORKOUT</div><div class="workout-title">${currentWorkout().name}</div></div>
+     <div class="progress-text">${activeIndex+1} / ${currentWorkout().exercises.length}</div>
+   </div>
+   <div class="progress-track"><div class="progress-bar" style="width:${progressPct}%"></div></div>
+   <div class="exercise">
+     <div class="illustration"><div class="badge">動作示意</div>${svgs[ex.svg||ex.id]}</div>
+     <div class="exercise-name">
+       <div><h2>${ex.zh}</h2><div class="en">${ex.en}</div></div>
+       <button class="helpbtn" id="detailBtn">？怎麼做</button>
+     </div>
+     <div class="dose">
+       <div class="metric"><div class="label">${ex.levels?'版本':'重量'}</div><div class="value" style="font-size:${ex.levels?'13px':'18px'}">${weightText(ex)}</div></div>
+       <div class="metric"><div class="label">組數</div><div class="value">${ex.sets} 組</div></div>
+       <div class="metric"><div class="label">${ex.isTime?'時間':'每組'}</div><div class="value">${repsText(ex)}</div></div>
+     </div>
+     ${weightGroupNote(ex)}
+     <div class="cues">${ex.cues.map(c=>`<div class="cue">${c}</div>`).join("")}</div>
+     <div class="sets">${setRows}</div>
+     <div class="restbox" id="restbox"><div><div class="kicker" style="color:#aaa">REST</div><div class="resttime" id="resttime">${ex.rest}</div></div><div class="rest-actions"><button id="minusRest">-15s</button><button id="skipRest">跳過</button></div></div>
+     <div class="feedback ${allDone?'show':''}" id="feedback">
+       <div class="feedback-title">這個重量 / 難度怎麼樣？</div>
+       <div class="feedback-grid">
+         <button data-feedback="light" class="${state.feedback==='light'?'selected':''}">😴 太輕</button>
+         <button data-feedback="good" class="${state.feedback==='good'?'selected':''}">🙂 剛好</button>
+         <button data-feedback="heavy" class="${state.feedback==='heavy'?'selected':''}">😣 太重</button>
+       </div>
+     </div>
+     <div class="navrow">
+       <button class="prev" id="prevBtn" ${activeIndex===0?'disabled':''}>←</button>
+       <button class="next" id="nextBtn">${activeIndex===currentWorkout().exercises.length-1?'完成今天':'下一個動作 →'}</button>
+     </div>
+   </div>
+ </div>`;
+ document.querySelectorAll(".donebtn").forEach(b=>b.onclick=()=>toggleSet(ex,+b.dataset.set));
+ $("#detailBtn").onclick=()=>openTutorial(ex);
+ $("#prevBtn").onclick=()=>{ if(activeIndex>0){activeIndex--;stopRest();renderWorkout()} };
+ $("#nextBtn").onclick=()=>nextExercise(ex);
+ document.querySelectorAll("[data-feedback]").forEach(b=>b.onclick=()=>setFeedback(ex,b.dataset.feedback));
+}
+
+function weightGroupNote(ex){
+ if(settings.mode!=="dumbbell" || ex.weight===0) return "";
+ const list=currentWorkout().exercises.map(applyProgress);
+ const same=list.filter(x=>x.weight===ex.weight).length;
+ const next=list[activeIndex+1];
+ let right="";
+ if(next){
+   if(next.weight===ex.weight) right="下一個不用換重量";
+   else if(next.weight>0) right=`下一個換 ${next.weight} kg`;
+   else right="後面進入徒手";
+ }
+ return `<div class="groupnote"><span><b>${ex.weight} kg 區塊</b> · 共 ${same} 個動作</span><span>${right}</span></div>`;
+}
+
+function toggleSet(ex,i){
+ const state=sessionState[ex.id];
+ state.done[i]=!state.done[i];
+ if(state.done[i]){
+   beep(520,.06);
+   if(state.done.filter(Boolean).length<ex.sets) startRest(ex.rest);
+ } else stopRest();
+ renderWorkout();
+ if(restLeft>0) showRestUI();
+}
+function startRest(sec){
+ stopRest(); restLeft=sec;
+ restTimer=setInterval(()=>{restLeft--;updateRest();if(restLeft<=0){stopRest();beep(820,.18);}},1000);
+ setTimeout(showRestUI,20);
+}
+function showRestUI(){ const el=$("#restbox"); if(el){el.classList.add("show");updateRest();
+ $("#skipRest").onclick=()=>stopRest(true);
+ $("#minusRest").onclick=()=>{restLeft=Math.max(0,restLeft-15);updateRest();};
+}}
+function updateRest(){ if($("#resttime")) $("#resttime").textContent=restLeft; }
+function stopRest(hide=true){
+ if(restTimer) clearInterval(restTimer); restTimer=null; restLeft=0;
+ if(hide&&$("#restbox")) $("#restbox").classList.remove("show");
+}
+function beep(freq,dur){
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext; const ctx=new AC();
+  const o=ctx.createOscillator(),g=ctx.createGain(); o.frequency.value=freq;o.connect(g);g.connect(ctx.destination);
+  g.gain.setValueAtTime(.06,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+  o.start();o.stop(ctx.currentTime+dur);
+ }catch(e){}
+}
+function setFeedback(ex,val){
+ sessionState[ex.id].feedback=val; renderWorkout();
+}
+function nextWeight(w,dir){
+ const arr=settings.weights.slice().sort((a,b)=>a-b);
+ if(w===0) return 0;
+ let idx=arr.findIndex(x=>x>=w-1e-9);
+ if(idx<0) idx=0;
+ return arr[Math.max(0,Math.min(arr.length-1,idx+dir))];
+}
+function adapt(ex,state){
+ const p=progress[ex.id]||{weight:ex.weight,target:ex.target,sets:ex.sets,topStreak:0,levelIndex:ex.startLevel??0};
+ let target=p.target??ex.target, weight=p.weight??ex.weight, streak=p.topStreak??0;
+ let levelIndex=p.levelIndex??ex.startLevel??0;
+ if(ex.levels){
+   if(state.feedback==="heavy"){
+     if(target>ex.min) target=Math.max(ex.min,target-2);
+     else if(levelIndex>0){ levelIndex--; target=ex.min; }
+     streak=0;
+   }else if(state.feedback==="light"){
+     if(target>=ex.max-1 && levelIndex<ex.levels.length-1){ levelIndex++; target=ex.min; }
+     else target=Math.min(ex.max,target+2);
+     streak=0;
+   }else{
+     if(target<ex.max) target=Math.min(ex.max,target+1);
+     else{
+       streak++;
+       if(streak>=2 && levelIndex<ex.levels.length-1){ levelIndex++; target=ex.min; streak=0; }
+     }
+   }
+   progress[ex.id]={weight:0,target,sets:p.sets??ex.sets,topStreak:streak,levelIndex};
+   return;
+ }
+ if(state.feedback==="heavy"){
+   if(weight>0) weight=nextWeight(weight,-1);
+   target=Math.max(ex.min,target-1); streak=0;
+ }else if(state.feedback==="light"){
+   if(weight>0 && target>=ex.max-1){ weight=nextWeight(weight,1); target=ex.min; }
+   else target=Math.min(ex.max,target+1);
+   streak=0;
+ }else{
+   if(target<ex.max) target++;
+   else{
+     streak++;
+     if(streak>=2 && weight>0){ weight=nextWeight(weight,1); target=ex.min; streak=0; }
+   }
+ }
+ progress[ex.id]={weight,target,sets:p.sets??ex.sets,topStreak:streak};
+}
+function nextExercise(ex){
+ const state=sessionState[ex.id];
+ if(!state.done.every(Boolean)){ alert("先把這個動作的組數完成，再進下一個。"); return; }
+ if(!state.feedback){ alert("請先選「太輕 / 剛好 / 太重」，系統才能調整下次難度。"); return; }
+ adapt(ex,state); storage.set("strengthProgress",progress);
+ if(activeIndex<currentWorkout().exercises.length-1){activeIndex++;stopRest();renderWorkout();}
+ else finishWorkout();
+}
+function finishWorkout(){
+ const snapshot=currentWorkout().exercises.map(e=>{
+  const s=sessionState[e.id];
+  return {id:e.id,zh:e.zh,weight:s.prescribedWeight,target:s.prescribedTarget,level:s.prescribedLevel,feedback:s.feedback,isTime:!!e.isTime};
+ });
+ const entry={date:new Date().toISOString(),workout:currentWorkout().name,mode:settings.mode,items:snapshot};
+ history.unshift(entry);
+ history=history.slice(0,40); storage.set("strengthHistory",history);
+ const summary=makeSummary(entry);
+ sessionState={}; activeIndex=0;
+ $("#todayContent").innerHTML=`<div class="card empty"><div class="big">✓</div><h2>今天完成</h2><p>紀錄已儲存。按下面按鈕就能把今天的結果貼回給我，不用自己重打一遍。</p><div class="finish-actions"><button class="copy-primary" id="finishShareBtn">回報 / 分享今天摘要</button><button class="secondary-btn" id="finishHomeBtn">回到今天</button></div></div>`;
+ $("#finishShareBtn").onclick=()=>showSummary(summary,"今天訓練摘要");
+ $("#finishHomeBtn").onclick=()=>renderToday();
+ beep(940,.25);
+}
+function renderPlan(){
+ const now=new Date(), t=localDay(now), todayPlan=getTodayPlan(), done=!!anyStrengthEntryOn(now);
+ $("#planGrid").innerHTML=weekly.map((d,i)=>{
+   let right=i===t?(done?"今天 ✓":"今天"):"";
+   return `<div class="day ${i===t?'today':''}"><div><strong>${d.name}</strong><br><span>${d.label}</span></div><div>${right}</div></div>`;
+ }).join("");
+}
+function feedbackText(v){ return v==="light"?"太輕":v==="heavy"?"太重／太累":"剛好"; }
+function makeSummary(h){
+ if(!h) return "目前沒有訓練紀錄。";
+ if(h.kind==="cardio") return `【有氧訓練回報】\n日期：${new Date(h.date).toLocaleString("zh-TW")}\n課程：${h.workout}\n時間：約 ${h.durationMin} 分鐘\n體感：${feedbackText(h.feedback)}\n\n請依這次體感幫我調整下一次有氧。`;
+ const mode=h.mode==="bodyweight"?"只有徒手":"有啞鈴";
+ const lines=["【增肌訓練回報】",`日期：${new Date(h.date).toLocaleString("zh-TW")}`,`模式：${mode}`,`課表：${h.workout}`,""];
+ h.items.forEach((i,idx)=>{
+   const dose=i.level?`${i.level}｜${i.target}${i.isTime?"秒":"下"}`:(i.weight?`${i.weight} kg｜${i.target}${i.isTime?"秒":"下"}`:`徒手｜${i.target}${i.isTime?"秒":"下"}`);
+   lines.push(`${idx+1}. ${i.zh}｜${dose}｜${feedbackText(i.feedback)}`);
+ });
+ lines.push("", "請依這次紀錄幫我調整下一次訓練，並維持同重量動作盡量集中。");
+ return lines.join("\n");
+}
+function fullBackupText(){
+ return JSON.stringify({version:1,schema:"strength_pwa",settings,progress,history,coachMeta},null,2);
+}
+function showSummary(textValue,title="訓練摘要"){
+ $("#summaryTitle").textContent=title; $("#summaryText").value=textValue; $("#summarySheet").classList.add("show");
+}
+async function copyText(value){
+ try{ await navigator.clipboard.writeText(value); return true; }
+ catch(e){ $("#summaryText").focus(); $("#summaryText").select(); try{return document.execCommand("copy")}catch{return false} }
+}
+function renderHistory(){
+ if(!history.length){$("#historyList").innerHTML=`<div class="card empty"><div class="big">◌</div><h2>還沒有紀錄</h2><p>完成第一次訓練後，這裡會看到每次的訓練紀錄。</p></div>`;return;}
+ $("#historyList").innerHTML=history.map((h,hi)=>{
+   if(h.kind==="cardio") return `<div class="history-item"><strong>${new Date(h.date).toLocaleDateString("zh-TW")}｜${h.workout}</strong><div>${h.durationMin} 分鐘 · ${feedbackText(h.feedback)}</div><button class="secondary-btn" style="margin-top:10px;width:100%;padding:9px 12px" data-share-history="${hi}"><span aria-hidden="true">↗</span><span>產生回報</span></button></div>`;
+   return `<div class="history-item"><strong>${new Date(h.date).toLocaleDateString("zh-TW")}｜${h.workout}</strong><div>${h.items.map(i=>`${i.zh} ${i.level|| (i.weight?i.weight+"kg":"徒手")} · ${feedbackText(i.feedback)}`).join("　")}</div><button class="secondary-btn" style="margin-top:10px;width:100%;padding:9px 12px" data-share-history="${hi}"><span aria-hidden="true">↗</span><span>產生回報</span></button></div>`;
+ }).join("");
+ document.querySelectorAll("[data-share-history]").forEach(b=>b.onclick=()=>showSummary(makeSummary(history[+b.dataset.shareHistory]),"訓練回報"));
+}
+function activateTab(name){
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ $("#"+name+"Section").classList.add("active");
+ if(name==="today")renderToday();
+ if(name==="plan")renderPlan();
+ if(name==="history")renderHistory();
+}
+function bindTabs(){
+ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>activateTab(b.dataset.tab));
+}
+$("#settingsBtn").onclick=()=>{
+ $("#weightsInput").value=settings.weights.join(",");
+ $("#durationInput").value=settings.duration;
+ $("#settingsSheet").classList.add("show");
+};
+$("#settingsSheet").onclick=e=>{if(e.target===$("#settingsSheet"))$("#settingsSheet").classList.remove("show")};
+$("#saveSettings").onclick=()=>{
+ const weights=$("#weightsInput").value.split(",").map(Number).filter(x=>x>0).sort((a,b)=>a-b);
+ settings={...settings,weights:weights.length?weights:settings.weights,duration:+$("#durationInput").value||40,mode:settings.mode};
+ storage.set("strengthSettings",settings); $("#settingsSheet").classList.remove("show"); renderToday();
+};
+document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
+ if(settings.mode===b.dataset.mode) return;
+ settings.mode=b.dataset.mode; storage.set("strengthSettings",settings);
+ activeIndex=0; sessionState={}; stopRest(); stopCardioTimer(); renderToday();
+});
+$("#summarySheet").onclick=e=>{if(e.target===$("#summarySheet"))$("#summarySheet").classList.remove("show")};
+$("#closeSummaryBtn").onclick=()=>$("#summarySheet").classList.remove("show");
+$("#copySummaryBtn").onclick=async()=>{
+ const ok=await copyText($("#summaryText").value); $("#copySummaryBtn").textContent=ok?"已複製 ✓":"請長按文字複製";
+ setTimeout(()=>$("#copySummaryBtn").textContent="複製摘要",1400);
+};
+$("#shareLatestBtn").onclick=()=>showSummary(makeSummary(history[0]),"最新訓練回報");
+$("#backupBtn").onclick=()=>showSummary(fullBackupText(),"完整資料備份");
+$("#importBackupBtn").onclick=()=>$("#importSheet").classList.add("show");
+$("#importSheet").onclick=e=>{if(e.target===$("#importSheet"))$("#importSheet").classList.remove("show")};
+$("#closeImportBtn").onclick=()=>$("#importSheet").classList.remove("show");
+$("#confirmImportBtn").onclick=()=>{
+ try{
+   const data=JSON.parse($("#importText").value.trim());
+   if(!data || typeof data!=="object") throw new Error("格式錯誤");
+   if(data.settings) storage.set("strengthSettings",data.settings);
+   if(data.progress) storage.set("strengthProgress",data.progress);
+   if(Array.isArray(data.history)) storage.set("strengthHistory",data.history);
+   if(data.coachMeta) storage.set("strengthCoachMeta",data.coachMeta);
+   alert("匯入完成，App 會重新載入。");
+   location.reload();
+ }catch(e){
+   alert("這份備份無法讀取。請確認貼上的是「備份全部資料」產生的完整 JSON。");
+ }
+};
+
+
+const knownExerciseIds = new Set([
+ ...Object.values(baseWorkouts).flatMap(w=>w.exercises.map(e=>e.id)),
+ ...Object.values(bodyweightWorkouts).flatMap(w=>w.exercises.map(e=>e.id))
+]);
+
+function coachStatusText(){
+ if(!coachMeta) return "目前尚未匯入教練調整。";
+ const when=coachMeta.issuedAt?new Date(coachMeta.issuedAt).toLocaleString("zh-TW"):"未標日期";
+ const count=Array.isArray(coachMeta.changed)?coachMeta.changed.length:0;
+ return `上次教練調整：${when}・${count} 個動作${coachMeta.note?`・${coachMeta.note}`:""}`;
+}
+function refreshCoachStatus(){
+ const el=$("#coachStatus"); if(el) el.textContent=coachStatusText();
+}
+function applyCoachUpdatePayload(data){
+ if(!data || data.type!=="strength_coach_update" || Number(data.schema)!==1) throw new Error("不是有效的教練更新碼");
+ const updates=data.updates||{};
+ const changed=[];
+ if(updates.progress){
+   if(typeof updates.progress!=="object" || Array.isArray(updates.progress)) throw new Error("progress 格式錯誤");
+   Object.entries(updates.progress).forEach(([id,patch])=>{
+     if(!knownExerciseIds.has(id)) throw new Error(`未知動作：${id}`);
+     if(!patch || typeof patch!=="object" || Array.isArray(patch)) throw new Error(`動作 ${id} 的設定格式錯誤`);
+     const clean={};
+     ["weight","target","sets","topStreak","levelIndex"].forEach(k=>{
+       if(patch[k]!==undefined){
+         const v=Number(patch[k]);
+         if(!Number.isFinite(v) || v<0) throw new Error(`${id}.${k} 不是有效數值`);
+         clean[k]=v;
+       }
+     });
+     progress[id]={...(progress[id]||{}),...clean};
+     changed.push(id);
+   });
+   storage.set("strengthProgress",progress);
+ }
+ if(updates.settings){
+   const s=updates.settings;
+   if(s.cardioLevel!==undefined){
+     const v=Number(s.cardioLevel);
+     if(!Number.isInteger(v)||v<0||v>=cardioLevels.length) throw new Error("cardioLevel 超出範圍");
+     settings.cardioLevel=v;
+   }
+   if(s.duration!==undefined){
+     const v=Number(s.duration);
+     if(!Number.isFinite(v)||v<15||v>120) throw new Error("duration 超出範圍");
+     settings.duration=v;
+   }
+   if(s.strengthAnchorDate!==undefined){
+     if(!/^\d{4}-\d{2}-\d{2}$/.test(String(s.strengthAnchorDate))) throw new Error("strengthAnchorDate 格式錯誤");
+     settings.strengthAnchorDate=String(s.strengthAnchorDate);
+   }
+   if(s.strengthAnchorType!==undefined){
+     if(!["A","B"].includes(s.strengthAnchorType)) throw new Error("strengthAnchorType 只能是 A 或 B");
+     settings.strengthAnchorType=s.strengthAnchorType;
+   }
+   storage.set("strengthSettings",settings);
+ }
+ coachMeta={
+   issuedAt:data.issuedAt||new Date().toISOString(),
+   appliedAt:new Date().toISOString(),
+   note:String(data.note||""),
+   changed:[...new Set(changed)]
+ };
+ storage.set("strengthCoachMeta",coachMeta);
+ return coachMeta;
+}
+
+$("#coachUpdateBtn").onclick=()=>{
+ $("#coachText").value="";
+ $("#coachSheet").classList.add("show");
+};
+$("#coachSheet").onclick=e=>{if(e.target===$("#coachSheet"))$("#coachSheet").classList.remove("show")};
+$("#closeCoachBtn").onclick=()=>$("#coachSheet").classList.remove("show");
+$("#applyCoachBtn").onclick=()=>{
+ try{
+   const data=JSON.parse($("#coachText").value.trim());
+   const result=applyCoachUpdatePayload(data);
+   $("#coachSheet").classList.remove("show");
+   activeIndex=0; sessionState={}; stopRest(); stopCardioTimer();
+   renderToday(); renderPlan(); renderHistory(); refreshCoachStatus();
+   alert(`教練調整已套用 ✓\n更新 ${result.changed.length} 個動作。`);
+ }catch(e){
+   alert(`無法套用：${e.message}`);
+ }
+};
+
+async function shareTextValue(value,title="Strength 訓練回報"){
+ if(navigator.share){
+   try{ await navigator.share({title,text:value}); return true; }
+   catch(e){ if(e && e.name==="AbortError") return false; }
+ }
+ return copyText(value);
+}
+$("#shareSummaryBtn").onclick=async()=>{
+ const ok=await shareTextValue($("#summaryText").value,$("#summaryTitle").textContent);
+ if(!navigator.share && ok){
+   $("#shareSummaryBtn").textContent="已複製 ✓";
+   setTimeout(()=>$("#shareSummaryBtn").textContent="分享到 ChatGPT / 其他 App",1400);
+ }
+};
+
+let deferredInstallPrompt=null;
+const isStandalone=()=>window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+function updateInstallButton(){
+ if(!isStandalone() && (deferredInstallPrompt || isIOS())) $("#installBtn").classList.add("show");
+ else $("#installBtn").classList.remove("show");
+}
+window.addEventListener("beforeinstallprompt",e=>{
+ e.preventDefault(); deferredInstallPrompt=e; updateInstallButton();
+});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;updateInstallButton()});
+$("#installBtn").onclick=async()=>{
+ if(deferredInstallPrompt){
+   deferredInstallPrompt.prompt();
+   try{ await deferredInstallPrompt.userChoice; }catch(e){}
+   deferredInstallPrompt=null; updateInstallButton();
+ }else{
+   $("#installSheet").classList.add("show");
+ }
+};
+$("#installSheet").onclick=e=>{if(e.target===$("#installSheet"))$("#installSheet").classList.remove("show")};
+$("#closeInstallBtn").onclick=()=>$("#installSheet").classList.remove("show");
+updateInstallButton();
+refreshCoachStatus();
+
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+
+let renderedDateKey=dateKey();
+function checkForNewDay(){
+ const nowKey=dateKey();
+ if(nowKey!==renderedDateKey){
+   renderedDateKey=nowKey;
+   activeIndex=0; sessionState={}; stopRest(); stopCardioTimer();
+   renderToday();
+   if($("#planSection").classList.contains("active")) renderPlan();
+ }
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkForNewDay(); });
+window.addEventListener("focus",checkForNewDay);
+setInterval(checkForNewDay,60000);
+
+$("#tutorialSheet").onclick=e=>{ if(e.target===$("#tutorialSheet")) closeTutorial(); };
+bindTabs(); renderToday();
+</script>
+</body>
+</html>
