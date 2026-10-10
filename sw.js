@@ -1,4 +1,4 @@
-const CACHE="strength-pwa-1.1.0";
+const CACHE="strength-pwa-1.2.0";
 const CORE=[
   "./",
   "./index.html",

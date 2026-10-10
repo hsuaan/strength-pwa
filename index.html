@@ -22,8 +22,8 @@ body{min-height:100svh}
 button,input{font:inherit}
 button{cursor:pointer;color:#111;-webkit-text-fill-color:#111;-webkit-appearance:none;appearance:none}
 button:disabled{opacity:.45}
-.app{width:min(100%,520px);margin:auto;min-height:100svh;background:var(--bg);padding:0 14px 92px}
-.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(243,243,241,.94);backdrop-filter:blur(12px);z-index:20}
+.app{width:min(100%,520px);margin:auto;min-height:100svh;background:var(--bg);padding:0 max(14px,env(safe-area-inset-right)) 92px max(14px,env(safe-area-inset-left))}
+.topbar{min-height:64px;height:calc(64px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(243,243,241,.94);backdrop-filter:blur(12px);z-index:20}
 .brand{font-weight:850;letter-spacing:-.03em;font-size:21px}
 .iconbtn{border:1px solid var(--line);background:#fff;min-width:40px;height:40px;padding:0 12px;border-radius:14px;box-shadow:0 1px 0 #ddd;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:850;color:#111;-webkit-text-fill-color:#111}
 .hero{display:flex;justify-content:space-between;align-items:end;margin:8px 2px 14px}
@@ -209,7 +209,7 @@ button:focus-visible{outline:3px solid rgba(17,17,17,.18);outline-offset:2px}
  .cues{display:none}
  .exercise-name{margin-top:10px}
  .metric{min-height:58px;padding:8px}
- .topbar{height:54px}
+ .topbar{min-height:54px;height:calc(54px + env(safe-area-inset-top))}
  .hero{margin-top:2px}
 }
 </style>
@@ -217,7 +217,7 @@ button:focus-visible{outline:3px solid rgba(17,17,17,.18);outline-offset:2px}
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.1</span></div>
+    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.2</span></div>
     <div class="top-actions">
       <button class="iconbtn cloud-mini" id="cloudBtn" aria-label="雲端同步"><span id="cloudDot" class="cloud-dot"></span><span>雲端</span></button>
       <button class="iconbtn install-mini" id="installBtn" aria-label="安裝 App"><span aria-hidden="true">＋</span><span>安裝</span></button>
