@@ -195,7 +195,11 @@ button:disabled{opacity:.45}
 .cloud-info b{display:block;font-size:12px;margin-top:3px}
 .cloud-message{min-height:18px;margin-top:10px;font-size:11px;line-height:1.45;color:#666}
 .cloud-message.error{color:#b3261e}
+
 .cloud-message.ok{color:#18864b}
+.autosave-note{font-size:10px;color:#777;font-weight:750;margin-top:4px}
+.autosave-note::before{content:"●";font-size:8px;margin-right:5px;color:#18864b}
+
 
 .install-mini{display:none}
 .install-mini.show{display:flex}
@@ -217,7 +221,7 @@ button:focus-visible{outline:3px solid rgba(17,17,17,.18);outline-offset:2px}
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.2</span></div>
+    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.3</span></div>
     <div class="top-actions">
       <button class="iconbtn cloud-mini" id="cloudBtn" aria-label="雲端同步"><span id="cloudDot" class="cloud-dot"></span><span>雲端</span></button>
       <button class="iconbtn install-mini" id="installBtn" aria-label="安裝 App"><span aria-hidden="true">＋</span><span>安裝</span></button>
@@ -563,6 +567,58 @@ let history = storage.get("strengthHistory",[]);
 let coachMeta = storage.get("strengthCoachMeta", null);
 
 let activeIndex=0, restTimer=null, restLeft=0, currentWorkoutKey=null, sessionState={};
+let restEndsAt=null;
+const ACTIVE_SESSION_KEY="strengthActiveSessionV1";
+
+function readActiveSession(){
+ try{return JSON.parse(localStorage.getItem(ACTIVE_SESSION_KEY))}catch{return null}
+}
+function activeSessionIsToday(s){
+ return !!s && s.date===dateKey() && ["A","B"].includes(s.workoutKey) && ["dumbbell","bodyweight"].includes(s.mode);
+}
+function saveActiveSession(){
+ if(!currentWorkoutKey || !["A","B"].includes(currentWorkoutKey)) return;
+ localStorage.setItem(ACTIVE_SESSION_KEY,JSON.stringify({
+   version:1,
+   date:dateKey(),
+   workoutKey:currentWorkoutKey,
+   mode:settings.mode,
+   activeIndex,
+   sessionState,
+   restEndsAt:restEndsAt||null,
+   savedAt:new Date().toISOString()
+ }));
+}
+function clearActiveSession(){
+ localStorage.removeItem(ACTIVE_SESSION_KEY);
+ restEndsAt=null;
+}
+function restoreActiveSessionForCurrentWorkout(){
+ const s=readActiveSession();
+ if(!s) return false;
+ if(!activeSessionIsToday(s)){
+   localStorage.removeItem(ACTIVE_SESSION_KEY);
+   return false;
+ }
+ if(s.workoutKey!==currentWorkoutKey || s.mode!==settings.mode) return false;
+ activeIndex=Math.max(0,Math.min(currentWorkout().exercises.length-1,Number(s.activeIndex)||0));
+ sessionState=s.sessionState&&typeof s.sessionState==="object"?s.sessionState:{};
+ restEndsAt=Number(s.restEndsAt)||null;
+ return true;
+}
+function prescribedExerciseAt(index){
+ const raw=applyProgress(currentWorkout().exercises[index]);
+ const st=sessionState[raw.id];
+ if(!st) return raw;
+ return {
+   ...raw,
+   weight:st.prescribedWeight ?? raw.weight,
+   target:st.prescribedTarget ?? raw.target,
+   sets:st.prescribedSets ?? raw.sets,
+   levelLabel:st.prescribedLevel ?? raw.levelLabel
+ };
+}
+
 let cardioState={running:false,paused:false,type:null,index:0,round:1,phase:"work",left:0,timer:null,startedAt:null};
 
 function dateKey(d=new Date()){
@@ -860,6 +916,7 @@ function renderToday(){
 
  if(plan.type==="A"||plan.type==="B"){
    currentWorkoutKey=plan.type;
+   if(Object.keys(sessionState).length===0) restoreActiveSessionForCurrentWorkout();
    const w=currentWorkout();
    $("#todayTitle").textContent=w.name;
    $("#todayPill").textContent=w.duration;
@@ -1064,13 +1121,15 @@ function initSession(){
    if(!sessionState[ex.id]) sessionState[ex.id]={
      done:Array(ex.sets).fill(false),feedback:null,
      prescribedWeight:ex.weight,prescribedTarget:ex.target,
-     prescribedLevel:ex.levelLabel||null, prescribedMode:settings.mode
+     prescribedSets:ex.sets,
+     prescribedLevel:ex.levelLabel||null,prescribedMode:settings.mode
    };
  });
+ saveActiveSession();
 }
 function renderWorkout(){
  initSession();
- const ex=applyProgress(currentWorkout().exercises[activeIndex]);
+ const ex=prescribedExerciseAt(activeIndex);
  const state=sessionState[ex.id]||{done:Array(ex.sets).fill(false),feedback:null};
  const doneCount=state.done.filter(Boolean).length;
  const allDone=doneCount===ex.sets;
@@ -1085,7 +1144,7 @@ function renderWorkout(){
  $("#todayContent").innerHTML=`
  <div class="card">
    <div class="workout-head">
-     <div><div class="kicker">TODAY'S WORKOUT</div><div class="workout-title">${currentWorkout().name}</div></div>
+     <div><div class="kicker">TODAY'S WORKOUT</div><div class="workout-title">${currentWorkout().name}</div><div class="autosave-note">訓練進度自動保存</div></div>
      <div class="progress-text">${activeIndex+1} / ${currentWorkout().exercises.length}</div>
    </div>
    <div class="progress-track"><div class="progress-bar" style="width:${progressPct}%"></div></div>
@@ -1120,14 +1179,15 @@ function renderWorkout(){
  </div>`;
  document.querySelectorAll(".donebtn").forEach(b=>b.onclick=()=>toggleSet(ex,+b.dataset.set));
  $("#detailBtn").onclick=()=>openTutorial(ex);
- $("#prevBtn").onclick=()=>{ if(activeIndex>0){activeIndex--;stopRest();renderWorkout()} };
+ $("#prevBtn").onclick=()=>{ if(activeIndex>0){activeIndex--;stopRest();saveActiveSession();renderWorkout()} };
  $("#nextBtn").onclick=()=>nextExercise(ex);
  document.querySelectorAll("[data-feedback]").forEach(b=>b.onclick=()=>setFeedback(ex,b.dataset.feedback));
+ if(restEndsAt&&restEndsAt>Date.now()) resumeRestTimer();
 }
 
 function weightGroupNote(ex){
  if(settings.mode!=="dumbbell" || ex.weight===0) return "";
- const list=currentWorkout().exercises.map(applyProgress);
+ const list=currentWorkout().exercises.map((_,i)=>prescribedExerciseAt(i));
  const same=list.filter(x=>x.weight===ex.weight).length;
  const next=list[activeIndex+1];
  let right="";
@@ -1142,25 +1202,56 @@ function weightGroupNote(ex){
 function toggleSet(ex,i){
  const state=sessionState[ex.id];
  state.done[i]=!state.done[i];
+ saveActiveSession();
  if(state.done[i]){
    beep(520,.06);
    if(state.done.filter(Boolean).length<ex.sets) startRest(ex.rest);
  } else stopRest();
  renderWorkout();
- if(restLeft>0) showRestUI();
+ if(restEndsAt&&restEndsAt>Date.now()) resumeRestTimer();
+}
+function restTick(){
+ if(!restEndsAt){restLeft=0;return;}
+ restLeft=Math.max(0,Math.ceil((restEndsAt-Date.now())/1000));
+ updateRest();
+ if(restLeft<=0){
+   if(restTimer) clearInterval(restTimer);
+   restTimer=null; restEndsAt=null; restLeft=0;
+   saveActiveSession();
+   if($("#restbox")) $("#restbox").classList.remove("show");
+   beep(820,.18);
+ }
 }
 function startRest(sec){
- stopRest(); restLeft=sec;
- restTimer=setInterval(()=>{restLeft--;updateRest();if(restLeft<=0){stopRest();beep(820,.18);}},1000);
+ if(restTimer) clearInterval(restTimer);
+ restEndsAt=Date.now()+sec*1000;
+ restTick();
+ restTimer=setInterval(restTick,250);
+ saveActiveSession();
  setTimeout(showRestUI,20);
 }
-function showRestUI(){ const el=$("#restbox"); if(el){el.classList.add("show");updateRest();
+function resumeRestTimer(){
+ if(!restEndsAt) return;
+ if(restEndsAt<=Date.now()){
+   restEndsAt=null; restLeft=0; saveActiveSession(); return;
+ }
+ if(restTimer) clearInterval(restTimer);
+ restTick();
+ restTimer=setInterval(restTick,250);
+ setTimeout(showRestUI,20);
+}
+function showRestUI(){ const el=$("#restbox"); if(el&&restEndsAt&&restEndsAt>Date.now()){el.classList.add("show");restTick();
  $("#skipRest").onclick=()=>stopRest(true);
- $("#minusRest").onclick=()=>{restLeft=Math.max(0,restLeft-15);updateRest();};
+ $("#minusRest").onclick=()=>{
+   restEndsAt=Math.max(Date.now(),restEndsAt-15000);
+   restTick(); saveActiveSession();
+ };
 }}
 function updateRest(){ if($("#resttime")) $("#resttime").textContent=restLeft; }
 function stopRest(hide=true){
- if(restTimer) clearInterval(restTimer); restTimer=null; restLeft=0;
+ if(restTimer) clearInterval(restTimer);
+ restTimer=null; restLeft=0; restEndsAt=null;
+ saveActiveSession();
  if(hide&&$("#restbox")) $("#restbox").classList.remove("show");
 }
 function beep(freq,dur){
@@ -1172,7 +1263,7 @@ function beep(freq,dur){
  }catch(e){}
 }
 function setFeedback(ex,val){
- sessionState[ex.id].feedback=val; renderWorkout();
+ sessionState[ex.id].feedback=val; saveActiveSession(); renderWorkout();
 }
 function nextWeight(w,dir){
  const arr=settings.weights.slice().sort((a,b)=>a-b);
@@ -1224,19 +1315,27 @@ function nextExercise(ex){
  const state=sessionState[ex.id];
  if(!state.done.every(Boolean)){ alert("先把這個動作的組數完成，再進下一個。"); return; }
  if(!state.feedback){ alert("請先選「太輕 / 剛好 / 太重」，系統才能調整下次難度。"); return; }
- adapt(ex,state); storage.set("strengthProgress",progress);
- if(activeIndex<currentWorkout().exercises.length-1){activeIndex++;stopRest();renderWorkout();}
- else finishWorkout();
+ if(activeIndex<currentWorkout().exercises.length-1){
+   activeIndex++;
+   stopRest();
+   saveActiveSession();
+   renderWorkout();
+ }else finishWorkout();
 }
 function finishWorkout(){
- const snapshot=currentWorkout().exercises.map(e=>{
+ const exercises=currentWorkout().exercises;
+ const snapshot=exercises.map(e=>{
   const s=sessionState[e.id];
   return {id:e.id,zh:e.zh,weight:s.prescribedWeight,target:s.prescribedTarget,level:s.prescribedLevel,feedback:s.feedback,isTime:!!e.isTime};
  });
+ exercises.forEach(e=>adapt(e,sessionState[e.id]));
+ storage.set("strengthProgress",progress);
+
  const entry={date:new Date().toISOString(),workout:currentWorkout().name,mode:settings.mode,items:snapshot};
  history.unshift(entry);
  history=history.slice(0,40); storage.set("strengthHistory",history);
  const summary=makeSummary(entry);
+ clearActiveSession();
  sessionState={}; activeIndex=0;
  $("#todayContent").innerHTML=`<div class="card empty"><div class="big">✓</div><h2>今天完成</h2><p>紀錄已儲存。按下面按鈕就能把今天的結果貼回給我，不用自己重打一遍。</p><div class="finish-actions"><button class="copy-primary" id="finishShareBtn">回報 / 分享今天摘要</button><button class="secondary-btn" id="finishHomeBtn">回到今天</button></div></div>`;
  $("#finishShareBtn").onclick=()=>showSummary(summary,"今天訓練摘要");
@@ -1425,7 +1524,20 @@ function applyState(state){
   } finally {
     suppressCloudDirty=false;
   }
-  activeIndex=0; sessionState={}; stopRest(); stopCardioTimer();
+  const active=readActiveSession();
+  if(activeSessionIsToday(active)){
+    settings.mode=active.mode;
+    localStorage.setItem("strengthSettings",JSON.stringify(settings));
+    currentWorkoutKey=active.workoutKey;
+    activeIndex=Number(active.activeIndex)||0;
+    sessionState=active.sessionState||{};
+    restEndsAt=Number(active.restEndsAt)||null;
+  }else{
+    activeIndex=0; sessionState={}; restEndsAt=null;
+  }
+  if(restTimer) clearInterval(restTimer);
+  restTimer=null; restLeft=0;
+  stopCardioTimer();
   renderToday();
   if($("#planSection")?.classList.contains("active")) renderPlan();
   if($("#historySection")?.classList.contains("active")) renderHistory();
@@ -1573,7 +1685,12 @@ $("#cloudLogoutBtn").onclick=async()=>{
 };
 window.addEventListener("online",()=>{ updateCloudUI(); if(cloudUser) syncCloud("online"); });
 window.addEventListener("offline",updateCloudUI);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&cloudUser&&navigator.onLine) syncCloud("focus"); });
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden){
+    if(restEndsAt&&restEndsAt>Date.now()) resumeRestTimer();
+    if(cloudUser&&navigator.onLine) syncCloud("focus");
+  }
+});
 window.addEventListener("focus",()=>{ if(cloudUser&&navigator.onLine) syncCloud("focus"); });
 setTimeout(initCloud,0);
 
@@ -1713,7 +1830,11 @@ function checkForNewDay(){
  const nowKey=dateKey();
  if(nowKey!==renderedDateKey){
    renderedDateKey=nowKey;
-   activeIndex=0; sessionState={}; stopRest(); stopCardioTimer();
+   clearActiveSession();
+   activeIndex=0; sessionState={};
+   if(restTimer) clearInterval(restTimer);
+   restTimer=null; restLeft=0; restEndsAt=null;
+   stopCardioTimer();
    renderToday();
    if($("#planSection").classList.contains("active")) renderPlan();
  }
