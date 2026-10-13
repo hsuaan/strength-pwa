@@ -1,4 +1,4 @@
-const CACHE="strength-pwa-1.3.0";
+const CACHE="strength-pwa-1.4.0";
 const CORE=[
   "./",
   "./index.html",
@@ -24,8 +24,11 @@ self.addEventListener("fetch",event=>{
   if(event.request.method!=="GET") return;
   const url=new URL(event.request.url);
   if(url.origin===location.origin){
+    const req=event.request.mode==="navigate"
+      ? new Request(event.request,{cache:"no-store"})
+      : event.request;
     event.respondWith(
-      fetch(event.request).then(response=>{
+      fetch(req).then(response=>{
         const copy=response.clone();
         caches.open(CACHE).then(cache=>cache.put(event.request,copy));
         return response;

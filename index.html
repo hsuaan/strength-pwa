@@ -221,7 +221,7 @@ button:focus-visible{outline:3px solid rgba(17,17,17,.18);outline-offset:2px}
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.3</span></div>
+    <div class="brand">Strength <span style="font-size:10px;color:#888">PWA 1.4</span></div>
     <div class="top-actions">
       <button class="iconbtn cloud-mini" id="cloudBtn" aria-label="雲端同步"><span id="cloudDot" class="cloud-dot"></span><span>雲端</span></button>
       <button class="iconbtn install-mini" id="installBtn" aria-label="安裝 App"><span aria-hidden="true">＋</span><span>安裝</span></button>
@@ -576,10 +576,56 @@ function readActiveSession(){
 function activeSessionIsToday(s){
  return !!s && s.date===dateKey() && ["A","B"].includes(s.workoutKey) && ["dumbbell","bodyweight"].includes(s.mode);
 }
-function saveActiveSession(){
- if(!currentWorkoutKey || !["A","B"].includes(currentWorkoutKey)) return;
- localStorage.setItem(ACTIVE_SESSION_KEY,JSON.stringify({
-   version:1,
+function openSessionDB(){
+ return new Promise((resolve,reject)=>{
+   if(!("indexedDB" in window)){ resolve(null); return; }
+   const req=indexedDB.open("strengthPwaRuntime",1);
+   req.onupgradeneeded=()=>{
+     const db=req.result;
+     if(!db.objectStoreNames.contains("runtime")) db.createObjectStore("runtime");
+   };
+   req.onsuccess=()=>resolve(req.result);
+   req.onerror=()=>reject(req.error);
+ });
+}
+async function idbSaveActiveSession(payload){
+ try{
+   const db=await openSessionDB(); if(!db) return;
+   await new Promise((resolve,reject)=>{
+     const tx=db.transaction("runtime","readwrite");
+     tx.objectStore("runtime").put(payload,"activeSession");
+     tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+   });
+   db.close();
+ }catch(e){}
+}
+async function idbReadActiveSession(){
+ try{
+   const db=await openSessionDB(); if(!db) return null;
+   const value=await new Promise((resolve,reject)=>{
+     const tx=db.transaction("runtime","readonly");
+     const req=tx.objectStore("runtime").get("activeSession");
+     req.onsuccess=()=>resolve(req.result||null);
+     req.onerror=()=>reject(req.error);
+   });
+   db.close(); return value;
+ }catch(e){ return null; }
+}
+async function idbClearActiveSession(){
+ try{
+   const db=await openSessionDB(); if(!db) return;
+   await new Promise((resolve,reject)=>{
+     const tx=db.transaction("runtime","readwrite");
+     tx.objectStore("runtime").delete("activeSession");
+     tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+   });
+   db.close();
+ }catch(e){}
+}
+function makeActiveSessionPayload(){
+ if(!currentWorkoutKey || !["A","B"].includes(currentWorkoutKey)) return null;
+ return {
+   version:2,
    date:dateKey(),
    workoutKey:currentWorkoutKey,
    mode:settings.mode,
@@ -587,23 +633,50 @@ function saveActiveSession(){
    sessionState,
    restEndsAt:restEndsAt||null,
    savedAt:new Date().toISOString()
- }));
+ };
+}
+function saveActiveSession(){
+ const payload=makeActiveSessionPayload();
+ if(!payload) return;
+ localStorage.setItem(ACTIVE_SESSION_KEY,JSON.stringify(payload));
+ idbSaveActiveSession(payload);
+ window.__strengthCloudMarkDirty?.("activeSession");
 }
 function clearActiveSession(){
  localStorage.removeItem(ACTIVE_SESSION_KEY);
+ idbClearActiveSession();
  restEndsAt=null;
+ window.__strengthCloudMarkDirty?.("activeSession");
+}
+function loadActiveSession(s){
+ if(!activeSessionIsToday(s)) return false;
+ currentWorkoutKey=s.workoutKey;
+ if(settings.mode!==s.mode){
+   settings.mode=s.mode;
+   localStorage.setItem("strengthSettings",JSON.stringify(settings));
+ }
+ activeIndex=Math.max(0,Number(s.activeIndex)||0);
+ sessionState=s.sessionState&&typeof s.sessionState==="object"?s.sessionState:{};
+ restEndsAt=Number(s.restEndsAt)||null;
+ localStorage.setItem(ACTIVE_SESSION_KEY,JSON.stringify(s));
+ return true;
 }
 function restoreActiveSessionForCurrentWorkout(){
  const s=readActiveSession();
  if(!s) return false;
  if(!activeSessionIsToday(s)){
    localStorage.removeItem(ACTIVE_SESSION_KEY);
+   idbClearActiveSession();
    return false;
  }
- if(s.workoutKey!==currentWorkoutKey || s.mode!==settings.mode) return false;
- activeIndex=Math.max(0,Math.min(currentWorkout().exercises.length-1,Number(s.activeIndex)||0));
- sessionState=s.sessionState&&typeof s.sessionState==="object"?s.sessionState:{};
- restEndsAt=Number(s.restEndsAt)||null;
+ return loadActiveSession(s);
+}
+async function recoverActiveSessionFromIndexedDB(){
+ if(activeSessionIsToday(readActiveSession())) return false;
+ const s=await idbReadActiveSession();
+ if(!activeSessionIsToday(s)) return false;
+ loadActiveSession(s);
+ renderToday();
  return true;
 }
 function prescribedExerciseAt(index){
@@ -883,7 +956,12 @@ function weightText(ex){
 function repsText(ex){ return ex.isTime?`${ex.target} 秒`:`${ex.target} 下`; }
 
 function renderToday(){
- const now=new Date(), plan=getTodayPlan();
+ const now=new Date();
+ const pending=readActiveSession();
+ if(activeSessionIsToday(pending)) loadActiveSession(pending);
+ const plan=activeSessionIsToday(pending)
+   ? {type:pending.workoutKey,label:"進行中的訓練"}
+   : getTodayPlan();
  renderedDateKey=dateKey(now);
  $("#todaySub").textContent = now.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"long"});
  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===settings.mode));
@@ -915,7 +993,7 @@ function renderToday(){
  }
 
  if(plan.type==="A"||plan.type==="B"){
-   currentWorkoutKey=plan.type;
+   if(!activeSessionIsToday(readActiveSession())) currentWorkoutKey=plan.type;
    if(Object.keys(sessionState).length===0) restoreActiveSessionForCurrentWorkout();
    const w=currentWorkout();
    $("#todayTitle").textContent=w.name;
@@ -1404,6 +1482,12 @@ $("#saveSettings").onclick=()=>{
 };
 document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
  if(settings.mode===b.dataset.mode) return;
+ const active=readActiveSession();
+ if(activeSessionIsToday(active) && Object.values(active.sessionState||{}).some(s=>(s.done||[]).some(Boolean)||s.feedback)){
+   alert("目前有尚未完成的訓練。請先完成今天，避免切換模式把進度弄混。");
+   return;
+ }
+ clearActiveSession();
  settings.mode=b.dataset.mode; storage.set("strengthSettings",settings);
  activeIndex=0; sessionState={}; stopRest(); stopCardioTimer(); renderToday();
 });
@@ -1472,11 +1556,12 @@ function stateRecency(state){
 }
 function currentState(){
   return {
-    schema:1,
+    schema:2,
     settings:JSON.parse(JSON.stringify(settings||{})),
     progress:JSON.parse(JSON.stringify(progress||{})),
     history:JSON.parse(JSON.stringify(history||[])),
-    coachMeta:coachMeta?JSON.parse(JSON.stringify(coachMeta)):null
+    coachMeta:coachMeta?JSON.parse(JSON.stringify(coachMeta)):null,
+    activeSession:(()=>{const s=readActiveSession();return s?JSON.parse(JSON.stringify(s)):null;})()
   };
 }
 function historyKey(h){
@@ -1493,12 +1578,16 @@ function mergeStates(cloudState, localState){
   const localNewer=stateRecency(localState)>=stateRecency(cloudState);
   const primary=localNewer?localState:cloudState;
   const secondary=localNewer?cloudState:localState;
+  const activeCandidates=[cloudState.activeSession,localState.activeSession]
+    .filter(s=>s && s.date===dateKey())
+    .sort((a,b)=>(Date.parse(b.savedAt||0)||0)-(Date.parse(a.savedAt||0)||0));
   return {
-    schema:1,
+    schema:2,
     settings:{...(secondary.settings||{}),...(primary.settings||{})},
     progress:{...(secondary.progress||{}),...(primary.progress||{})},
     history:mergedHistory,
-    coachMeta:primary.coachMeta||secondary.coachMeta||null
+    coachMeta:primary.coachMeta||secondary.coachMeta||null,
+    activeSession:activeCandidates[0]||null
   };
 }
 function applyState(state){
@@ -1521,17 +1610,25 @@ function applyState(state){
       coachMeta=state.coachMeta;
       localStorage.setItem("strengthCoachMeta",JSON.stringify(coachMeta));
     }
+    if(state.activeSession!==undefined){
+      const localActive=readActiveSession();
+      const remoteActive=state.activeSession;
+      const localTime=Date.parse(localActive?.savedAt||0)||0;
+      const remoteTime=Date.parse(remoteActive?.savedAt||0)||0;
+      if(remoteActive && activeSessionIsToday(remoteActive) && remoteTime>=localTime){
+        localStorage.setItem(ACTIVE_SESSION_KEY,JSON.stringify(remoteActive));
+        idbSaveActiveSession(remoteActive);
+      }else if(!remoteActive && !activeSessionIsToday(localActive)){
+        localStorage.removeItem(ACTIVE_SESSION_KEY);
+        idbClearActiveSession();
+      }
+    }
   } finally {
     suppressCloudDirty=false;
   }
   const active=readActiveSession();
   if(activeSessionIsToday(active)){
-    settings.mode=active.mode;
-    localStorage.setItem("strengthSettings",JSON.stringify(settings));
-    currentWorkoutKey=active.workoutKey;
-    activeIndex=Number(active.activeIndex)||0;
-    sessionState=active.sessionState||{};
-    restEndsAt=Number(active.restEndsAt)||null;
+    loadActiveSession(active);
   }else{
     activeIndex=0; sessionState={}; restEndsAt=null;
   }
@@ -1773,7 +1870,10 @@ $("#applyCoachBtn").onclick=()=>{
    const data=JSON.parse($("#coachText").value.trim());
    const result=applyCoachUpdatePayload(data);
    $("#coachSheet").classList.remove("show");
-   activeIndex=0; sessionState={}; stopRest(); stopCardioTimer();
+   const active=readActiveSession();
+   if(activeSessionIsToday(active)) loadActiveSession(active);
+   else { activeIndex=0; sessionState={}; stopRest(); }
+   stopCardioTimer();
    renderToday(); renderPlan(); renderHistory(); refreshCoachStatus();
    alert(`教練調整已套用 ✓\n更新 ${result.changed.length} 個動作。`);
  }catch(e){
@@ -1843,8 +1943,26 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkFor
 window.addEventListener("focus",checkForNewDay);
 setInterval(checkForNewDay,60000);
 
+function persistBeforeBackground(){
+ const active=readActiveSession();
+ if(currentWorkoutKey && (Object.keys(sessionState||{}).length || activeSessionIsToday(active))) saveActiveSession();
+}
+window.addEventListener("pagehide",persistBeforeBackground);
+window.addEventListener("beforeunload",persistBeforeBackground);
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden) persistBeforeBackground();
+});
+window.addEventListener("pageshow",()=>{
+ const s=readActiveSession();
+ if(activeSessionIsToday(s)){
+   loadActiveSession(s);
+   renderToday();
+ }
+});
+
 $("#tutorialSheet").onclick=e=>{ if(e.target===$("#tutorialSheet")) closeTutorial(); };
 bindTabs(); renderToday();
+recoverActiveSessionFromIndexedDB();
 </script>
 </body>
 </html>
