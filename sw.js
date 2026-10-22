@@ -1,4 +1,4 @@
-const CACHE="strength-pwa-1.6.0";
+const CACHE="strength-pwa-1.7.0";
 const CORE=[
   "./manifest.webmanifest",
   "./schedule_patch.js",
@@ -6,7 +6,7 @@ const CORE=[
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
-const PATCH_TAG='<script src="./schedule_patch.js?v=1.6"></script>';
+const PATCH_TAG='<script src="./schedule_patch.js?v=1.7"></script>';
 
 async function injectPatch(response){
   if(!response || !response.ok) return response;
@@ -15,7 +15,7 @@ async function injectPatch(response){
 
   let html=await response.text();
 
-  // 移除舊的排程 patch 標籤，再放入最新版。
+  // 移除任何舊版 schedule_patch 標籤，再注入 v1.7。
   html=html.replace(/<script src="\.\/schedule_patch\.js[^"]*"><\/script>\s*/g,"");
   html=html.replace("</body>",`${PATCH_TAG}\n</body>`);
 
