@@ -2,13 +2,18 @@
   if (window.__strengthFinalScheduleV17) return;
   window.__strengthFinalScheduleV17 = true;
 
-  const VERSION = "1.7";
+  const VERSION = "1.7.1";
   const AUX_KEYS = new Set(["U"]);
   const ALL_KEYS = new Set(["A","B","U"]);
 
+  // 短版動作擁有獨立訓練進度，但示意圖必須沿用原動作的圖檔 key。
+  // 原版 renderWorkout 使用 svgs[ex.svg || ex.id]。
+  // 沒有這一行時 aux_curl / aux_triceps / aux_deadbug / aux_sideplank
+  // 會找不到對應 SVG，讓示意區顯示字串 undefined。
   const cloneEx = (src, id, extra={}) => ({
     ...src,
     id,
+    svg: src.svg || src.id,
     auxSourceId: src.id,
     ...extra
   });
@@ -349,5 +354,5 @@
   renderToday();
   if($("#planSection")?.classList.contains("active")) renderPlan();
 
-  console.info("[Strength] final weekly schedule v1.7 active");
+  console.info("[Strength] final weekly schedule v1.7.1 active");
 })();
