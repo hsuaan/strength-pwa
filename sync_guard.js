@@ -1,10 +1,10 @@
-/* Strength PWA v1.7.2 — completed-workout precedence and safer cloud reconciliation.
+/* Strength PWA v1.7.5 — completed-workout precedence and safer cloud reconciliation.
    Keep user data in local storage + authenticated Supabase only. */
 (() => {
-  if (window.__strengthSyncGuardV172) return;
-  window.__strengthSyncGuardV172 = true;
+  if (window.__strengthSyncGuardV175) return;
+  window.__strengthSyncGuardV175 = true;
 
-  const VERSION = '1.7.2';
+  const VERSION = '1.7.5';
   const SESSION_KEY = 'strengthActiveSessionV1';
   const shortNames = new Set(['手臂＋核心｜短版', '上半身＋核心｜徒手短版']);
 
@@ -175,5 +175,5 @@
   const versionNode=document.querySelector('.brand span');
   if (versionNode) versionNode.textContent=`PWA ${VERSION}`;
   renderToday();
-  console.info('[Strength] completed-session sync guard v1.7.2 ready');
+  console.info('[Strength] completed-session sync guard v1.7.5 ready');
 })();

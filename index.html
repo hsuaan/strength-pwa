@@ -463,7 +463,20 @@ const svgs = {
   boxing:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="190" cy="48" r="20"/><path d="M190 70L205 129M200 92L150 103M203 92L288 76M205 129L178 185M205 129L244 181"/></g><circle cx="296" cy="74" r="9" fill="#151515"/><path d="M305 72H360" stroke="#777" stroke-width="4"/><text x="273" y="211" fill="#777" font-size="14">左右交替出拳</text></svg>`,
   sidestep:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="48" r="20"/><path d="M220 70V127M220 92L185 107M220 92L255 107M220 127L190 180M220 127L250 180"/></g><path d="M155 195H95M285 195H345" stroke="#777" stroke-width="4"/><text x="153" y="216" fill="#777" font-size="14">快速左右移動</text></svg>`,
   kneetap:`<svg viewBox="0 0 440 220"><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="220" cy="45" r="20"/><path d="M220 67V125M220 90L185 128M220 90L250 118M220 125L188 175M188 175L175 199M220 125L270 150M270 150L248 119"/></g><text x="278" y="125" fill="#777" font-size="14">手碰對側膝</text></svg>`,
-  sideplank:`<svg viewBox="0 0 440 220"><path d="M45 182H395" stroke="#bbb" stroke-width="4"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="120" cy="105" r="18"/><path d="M140 112L235 130L330 160M180 120L165 177M235 130L235 70"/></g><text x="252" y="82" font-size="15" fill="#777">肩、髖、腳保持一直線</text></svg>`
+  sideplank:`<svg viewBox="0 0 440 220"><path d="M45 182H395" stroke="#bbb" stroke-width="4"/><g stroke="#151515" stroke-width="8" stroke-linecap="round" fill="none"><circle cx="120" cy="105" r="18"/><path d="M140 112L235 130L330 160M180 120L165 177M235 130L235 70"/></g><text x="252" y="82" font-size="15" fill="#777">肩、髖、腳保持一直線</text></svg>`,
+  plank:`<svg viewBox="0 0 440 220" aria-label="前臂一般平板支撐示意">
+    <path d="M32 184H408" stroke="#bbb" stroke-width="4"/>
+    <g stroke="#151515" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <circle cx="78" cy="101" r="17"/>
+      <path d="M96 106L132 114L250 124L333 143L377 153"/>
+      <path d="M132 114L140 153L194 153"/>
+      <path d="M250 124L292 135L333 143"/>
+      <path d="M377 153L396 164"/>
+    </g>
+    <path d="M140 115V151" stroke="#777" stroke-width="3" stroke-dasharray="5 5"/>
+    <text x="188" y="72" font-size="15" fill="#777">頭、背、臀、腳跟保持一直線</text>
+    <text x="120" y="177" font-size="14" fill="#777">手肘在肩膀正下方</text>
+  </svg>`
 };
 
 const baseWorkouts = {
@@ -481,7 +494,7 @@ const baseWorkouts = {
   {id:"triceps",zh:"過頭三頭伸展",en:"Overhead Triceps Extension",weight:2.5,weightMode:"一顆",sets:2,min:8,max:12,target:8,rest:60,cues:["手肘朝前","上臂固定","不要拱腰"],details:"雙手握一顆啞鈴置於頭頂，彎曲手肘將啞鈴降到頭後，再伸直手肘。"},
   {id:"lunge",zh:"後跨弓箭步",en:"Reverse Lunge",weight:0,weightMode:"徒手",sets:2,min:6,max:10,target:8,rest:75,cues:["向後跨","前腳踩穩","身體保持直"],details:"站直後一腳往後跨，再彎曲雙膝下降。前腳穩定踩地站回起始姿勢。"},
   {id:"pushup",zh:"伏地挺身",en:"Push-up",weight:0,weightMode:"體重",sets:2,min:6,max:10,target:6,rest:75,cues:["全身一直線","手肘斜後方","不要做到力竭"],details:"手掌略寬於肩，從頭到腳保持一直線。下降到可控制深度，再推回。若姿勢開始崩壞就停止。"},
-  {id:"sideplank",zh:"側平板",en:"Side Plank",weight:0,weightMode:"體重",sets:2,min:20,max:40,target:20,rest:45,isTime:true,cues:["肘在肩下","髖不要掉","身體一直線"],details:"手肘在肩膀正下方，抬起髖部，使肩、髖、腳大致形成一直線。太難可先屈膝版本。"}
+  {id:"plank",svg:"plank",zh:"一般平板支撐",en:"Forearm Plank",weight:0,weightMode:"體重",sets:2,min:15,max:45,target:20,rest:45,isTime:true,cues:["手肘在肩膀正下方","腹部與臀部收緊","頭到腳跟保持一直線"],details:"以前臂與腳尖支撐身體，手肘放在肩膀正下方。收緊腹部與臀部，讓頭、背、臀、腳跟大致成一直線；保持正常呼吸，腰部開始下塌或臀部翹太高就停止。"}
  ]}
 };
 
@@ -499,7 +512,7 @@ const bodyweightWorkouts = {
   {id:"bw_push_b",svg:"pushup",zh:"伏地挺身",en:"Push-up",weight:0,weightMode:"體重",sets:2,min:6,max:12,target:6,startLevel:1,levels:["跪姿伏地挺身","標準伏地挺身","窄距伏地挺身","3 秒下降窄距伏地挺身"],rest:75,cues:["核心收緊","手肘斜後方","不要硬撐"],details:"B 日後期會逐步加入較窄手距，提高三頭肌負荷；如果手腕或肩膀不舒服就維持標準版。"},
   {id:"bw_snow",svg:"row",zh:"反向雪天使",en:"Reverse Snow Angel",weight:0,weightMode:"徒手",sets:2,min:8,max:15,target:10,startLevel:0,levels:["反向雪天使","每次停 1 秒","3 秒慢速雪天使"],rest:45,cues:["胸口輕貼地","肩胛滑動","不要聳肩"],details:"俯臥，手臂從身側沿地面上方慢慢畫弧到頭頂附近再回來。沒有拉力器材時用來補上背部活動。"},
   {id:"bw_triceps",svg:"pushup",zh:"窄距伏地挺身",en:"Close-grip Push-up",weight:0,weightMode:"體重",sets:2,min:5,max:10,target:5,startLevel:0,levels:["跪姿窄距伏地挺身","標準窄距伏地挺身","底部停 1 秒窄距伏地挺身"],rest:60,cues:["手距略窄","手肘往後","肩膀別聳起"],details:"主打三頭肌。手腕或肩膀若覺得不舒服，改回標準伏地挺身。"},
-  {id:"bw_sideplank",svg:"sideplank",zh:"側平板",en:"Side Plank",weight:0,weightMode:"體重",sets:2,min:20,max:45,target:20,startLevel:0,levels:["屈膝側平板","直腿側平板","上側腿抬起側平板"],rest:45,isTime:true,cues:["肘在肩下","髖不要掉","身體一直線"],details:"以能維持軀幹穩定為優先，不需要撐到發抖失去姿勢。"},
+  {id:"bw_plank",svg:"plank",zh:"一般平板支撐",en:"Forearm Plank",weight:0,weightMode:"體重",sets:2,min:15,max:45,target:20,startLevel:0,rest:45,isTime:true,cues:["手肘在肩膀正下方","腹部與臀部收緊","保持正常呼吸"],details:"以前臂與腳尖支撐身體，手肘放在肩膀正下方。收緊腹部與臀部，讓頭、背、臀、腳跟大致成一直線；保持正常呼吸，腰部開始下塌或臀部翹太高就停止。"},
   {id:"bw_calf_b",svg:"calf",zh:"單／雙腳提踵",en:"Calf Raise",weight:0,weightMode:"徒手",sets:2,min:12,max:22,target:15,startLevel:0,levels:["雙腳提踵","頂端停 2 秒","單腳提踵"],rest:45,cues:["頂端停一下","慢慢下降","可扶牆"],details:"依平衡與小腿感受逐步從雙腳進到單腳。"}
  ]}
 };
@@ -881,6 +894,14 @@ const tutorialLibrary = {
   mistakes:"大幅抬胸、聳肩、手臂甩得太快。",
   source:"Reverse Snow Angel 圖解",
   url:"https://bryllim.github.io/workout-guide/exercises/reverse-snow-angel/"
+ },
+ plank:{
+  steps:["俯臥，前臂放在地面，手肘對準肩膀正下方，前臂自然平放。","雙腿向後伸直，腳尖踩地，雙腳約與髖同寬。","收緊腹部與臀部，把身體撐起；頭、背、臀、腳跟大致保持一直線。","維持正常呼吸，不要憋氣；腰開始下塌、臀部翹太高或姿勢無法維持時就放下休息。"],
+  feel:"腹部核心與臀部；肩膀和前臂負責支撐。",
+  mistakes:"腰部下塌、臀部翹太高、聳肩、憋氣或為了撐久而失去直線。",
+  source:"ACE Front Plank",
+  url:"https://www.acefitness.org/resources/everyone/exercise-library/32/front-plank/"
+
  }
 };
 
@@ -891,7 +912,7 @@ function currentLevelName(ex){
  return ex.levels[idx];
 }
 function tutorialKeyFor(ex){
- if(["goblet","floorpress","row","shoulder","calf","deadbug","lunge","pushup","curl","triceps","sideplank"].includes(ex.id)) return ex.id;
+ if(["goblet","floorpress","row","shoulder","calf","deadbug","lunge","pushup","curl","triceps","sideplank","plank"].includes(ex.id)) return ex.id;
  if(ex.id==="bw_squat") return "goblet";
  if(ex.id==="bw_push"||ex.id==="bw_push_b"||ex.id==="bw_triceps") return "pushup";
  if(ex.id==="bw_back") return "ytw";
@@ -901,6 +922,7 @@ function tutorialKeyFor(ex){
  if(ex.id==="bw_lunge") return "lunge";
  if(ex.id==="bw_snow") return "snow";
  if(ex.id==="bw_sideplank") return "sideplank";
+ if(ex.id==="bw_plank") return "plank";
  return null;
 }
 function openTutorial(ex){

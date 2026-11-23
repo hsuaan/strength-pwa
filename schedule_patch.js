@@ -1,14 +1,14 @@
 (() => {
-  if (window.__strengthFinalScheduleV17) return;
-  window.__strengthFinalScheduleV17 = true;
+  if (window.__strengthFinalScheduleV175) return;
+  window.__strengthFinalScheduleV175 = true;
 
-  const VERSION = "1.7.1";
+  const VERSION = "1.7.5";
   const AUX_KEYS = new Set(["U"]);
   const ALL_KEYS = new Set(["A","B","U"]);
 
   // 短版動作擁有獨立訓練進度，但示意圖必須沿用原動作的圖檔 key。
   // 原版 renderWorkout 使用 svgs[ex.svg || ex.id]。
-  // 沒有這一行時 aux_curl / aux_triceps / aux_deadbug / aux_sideplank
+  // 沒有這一行時 aux_curl / aux_triceps / aux_deadbug / aux_plank
   // 會找不到對應 SVG，讓示意區顯示字串 undefined。
   const cloneEx = (src, id, extra={}) => ({
     ...src,
@@ -42,7 +42,7 @@
       cloneEx(findBase("curl"),"aux_curl",{weight:3,target:8,sets:2}),
       cloneEx(findBase("triceps"),"aux_triceps",{weight:3,target:8,sets:2}),
       cloneEx(findBase("deadbug"),"aux_deadbug",{target:8,sets:2}),
-      cloneEx(findBase("sideplank"),"aux_sideplank",{target:20,sets:2})
+      cloneEx(findBase("plank"),"aux_plank",{target:20,sets:2})
     ]
   };
 
@@ -53,9 +53,16 @@
       cloneEx(findBW("bw_triceps"),"aux_bw_triceps",{target:5,sets:2}),
       cloneEx(findBW("bw_back"),"aux_bw_back",{target:8,sets:2}),
       cloneEx(findBW("bw_deadbug"),"aux_bw_deadbug",{target:6,sets:2}),
-      cloneEx(findBW("bw_sideplank"),"aux_bw_sideplank",{target:20,sets:2})
+      cloneEx(findBW("bw_plank"),"aux_bw_plank",{target:20,sets:2})
     ]
   };
+
+  // U 課表在主程式建立 knownExerciseIds 之後才建立，需補登錄，
+  // 才能讓「匯入教練調整」接受週二短版的獨立進度 ID。
+  [
+    ...baseWorkouts.U.exercises,
+    ...bodyweightWorkouts.U.exercises
+  ].forEach(ex=>knownExerciseIds.add(ex.id));
 
   // 教學按鈕沿用來源動作的原教學。
   const originalTutorialKeyFor = tutorialKeyFor;
@@ -162,6 +169,8 @@
 
   makeActiveSessionPayload = function(){
     if(!currentWorkoutKey || !ALL_KEYS.has(currentWorkoutKey)) return null;
+    const todayPlan=getTodayPlan();
+    if(todayPlan.type==="rest" || todayPlan.type==="cardio") return null;
     return {
       version:4,
       date:dateKey(),
@@ -221,6 +230,14 @@
   };
   getTodayPlan = function(){ return planForDate(new Date()); };
 
+  // 休息日與心肺日不得恢復或儲存重訓暫存，避免前一天的 A/B 畫面覆蓋今天安排。
+  const activeSessionIsTodayBeforeRestGuard = activeSessionIsToday;
+  activeSessionIsToday = function(s){
+    const p=getTodayPlan();
+    if(p.type==="rest" || p.type==="cardio") return false;
+    return activeSessionIsTodayBeforeRestGuard(s);
+  };
+
   function auxEntryOn(date){
     const set=settings.mode==="bodyweight"?bodyweightWorkouts:baseWorkouts;
     const name=set.U?.name;
@@ -264,6 +281,20 @@
   const originalRenderToday=renderToday;
   renderToday=function(){
     const now=new Date();
+    const plan=getTodayPlan();
+
+    // 休息日／心肺日優先於任何重訓暫存；清除當日殘留暫存但不動歷史紀錄。
+    if(plan.type==="rest" || plan.type==="cardio"){
+      const stale=readActiveSession();
+      if(stale && stale.date===dateKey(now)){
+        localStorage.removeItem("strengthActiveSessionV1");
+      }
+      idbClearActiveSession();
+      activeIndex=0; sessionState={}; restEndsAt=null; currentWorkoutKey=null;
+      $("#modeSwitch").style.display="none";
+      return originalRenderToday();
+    }
+
     const pending=readActiveSession();
 
     // 若正在進行週二短版，優先恢復。
@@ -278,8 +309,6 @@
       renderWorkout();
       return;
     }
-
-    const plan=getTodayPlan();
 
     // 非阻力訓練日不顯示「有啞鈴 / 徒手」切換。
     $("#modeSwitch").style.display=(plan.type==="cardio" || plan.type==="rest")?"none":"";
@@ -354,5 +383,5 @@
   renderToday();
   if($("#planSection")?.classList.contains("active")) renderPlan();
 
-  console.info("[Strength] final weekly schedule v1.7.1 active");
+  console.info("[Strength] front plank replacement + weekly schedule v1.7.5 active");
 })();

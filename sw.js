@@ -1,4 +1,4 @@
-const CACHE='strength-pwa-1.7.2.0';
+const CACHE='strength-pwa-1.7.5.0';
 const CORE=[
   './manifest.webmanifest',
   './schedule_patch.js',
@@ -7,8 +7,8 @@ const CORE=[
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
-const PATCH_TAG='<script src="./schedule_patch.js?v=1.7.2"></script>';
-const GUARD_TAG='<script src="./sync_guard.js?v=1.7.2"></script>';
+const PATCH_TAG='<script src="./schedule_patch.js?v=1.7.5"></script>';
+const GUARD_TAG='<script src="./sync_guard.js?v=1.7.5"></script>';
 async function injectPatches(response){
   if (!response || !response.ok) return response;
   const type=response.headers.get('content-type')||'';
